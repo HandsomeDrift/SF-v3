@@ -52,6 +52,9 @@ class CrossModalGatedFusion(nn.Module):
                 nn.Linear(hidden_dim // 2, num_alphas),
                 nn.Sigmoid(),
             )
+            # Zero-init last linear: sigmoid(0)=0.5 → all guidance channels start equal
+            nn.init.zeros_(self.gate_net[2].weight)
+            nn.init.zeros_(self.gate_net[2].bias)
         else:
             self.register_buffer(
                 "fixed_alpha", torch.ones(num_alphas) / num_alphas

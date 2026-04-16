@@ -204,7 +204,7 @@ class GuidanceLoss(nn.Module):
         self.lambda_gt = lambda_gt
         self.lambda_gm = lambda_gm
 
-    def forward(self, slow_out, fast_out, video_embed=None, text_embed=None):
+    def forward(self, slow_out, fast_out, video_embed=None, text_embed=None, motion_embed=None):
         _ref = next(iter(slow_out.values()))
         losses = {}
         total = _ref.new_tensor(0.0)
@@ -217,6 +217,15 @@ class GuidanceLoss(nn.Module):
             cos_sim = F.cosine_similarity(slow_out["z_txt"], text_embed, dim=-1).mean()
             losses["L_gt"] = cos_sim.new_tensor(1.0) - cos_sim
             total = total + self.lambda_gt * losses["L_gt"]
+
+        # L_gm: motion guidance — detached-scale MSE (bs=1 safe, replaces broken cosine_similarity(dim=0))
+        if motion_embed is not None:
+            mot_pred = fast_out.get("global_dyn_token", fast_out.get("eeg_cls_proj"))
+            if mot_pred is not None:
+                target = motion_embed.detach()
+                scale = target.norm(dim=-1, keepdim=True).clamp(min=1e-6)
+                losses["L_gm"] = F.mse_loss(mot_pred / scale, target / scale)
+                total = total + self.lambda_gm * losses["L_gm"]
 
         return total, losses
 

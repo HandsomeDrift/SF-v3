@@ -273,12 +273,13 @@ class VideoDiffusionLossSF(VideoDiffusionLoss):
             l_aux = self.aux_align(fast_out["eeg_cls"], slow_out["fmri_cls"])
             sf_total = sf_total + self.lambda_aux * l_aux
 
-        # Guidance loss (stage 2+): pass video/text embeds from targets
+        # Guidance loss (stage 2+): pass video/text/motion embeds from targets
         if self.training_stage in ("fusion", "joint"):
             video_embed = targets.get("gt_keyframe_embed", None)
             text_embed = targets.get("gt_text_embed", None)
-            if "z_key" in slow_out and (video_embed is not None or text_embed is not None):
-                l_guide, _ = self.guide_loss(slow_out, fast_out, video_embed, text_embed)
+            motion_embed = targets.get("gt_motion_embed", None)
+            if "z_key" in slow_out and (video_embed is not None or text_embed is not None or motion_embed is not None):
+                l_guide, _ = self.guide_loss(slow_out, fast_out, video_embed, text_embed, motion_embed)
                 sf_total = sf_total + l_guide
 
         # Diffusion loss (stage 2 fusion + stage 3 joint)
