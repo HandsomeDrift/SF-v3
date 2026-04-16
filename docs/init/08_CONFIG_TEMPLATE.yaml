@@ -1,0 +1,80 @@
+model:
+  name: cinebrain_sf_v1
+  use_slow_branch: true
+  use_fast_branch: true
+  use_gated_fusion: true
+  use_multi_guidance: true
+
+slow_branch:
+  use_visual_roi: true
+  use_auditory_roi: true
+  use_keyframe_head: true
+  use_scene_text_head: true
+  use_structure_head: true
+  audiovisual_context_adapter: cross_attention
+
+fast_branch:
+  use_spatial_stream: true
+  use_temporal_stream: true
+  use_dynamics_head: true
+  use_motion_head: true
+  use_temporal_coherence_head: true
+  motion_mode: latent   # latent | flow_token
+
+fusion:
+  type: gated_dual_transformer
+  gating_hidden_dim: 1024
+  fixed_weights: false
+
+decoder:
+  backbone: cogvideox
+  use_brain_latent_guidance: true
+  use_keyframe_guidance: true
+  use_text_guidance: true
+  use_motion_guidance: true
+  lora_rank: 64
+  lora_alpha: 64
+
+loss:
+  lambda_fv: 1.0
+  lambda_ft: 1.0
+  lambda_ev: 1.0
+  lambda_et: 1.0
+  lambda_fe: 0.5
+
+  lambda_key: 1.0
+  lambda_txt: 1.0
+  lambda_str: 1.0
+
+  lambda_dyn: 1.0
+  lambda_mot: 1.0
+  lambda_tc: 0.5
+
+  lambda_gk: 0.5
+  lambda_gt: 0.5
+  lambda_gm: 0.5
+
+  lambda_aud: 0.0
+
+train:
+  stage: joint   # branch_pretrain | fusion | joint
+  batch_size: 1
+  lr: 1e-4
+  weight_decay: 1e-2
+  max_epochs: 20
+  mixed_precision: true
+
+data:
+  use_visual_roi: true
+  use_auditory_roi: true
+  eeg_use_spectral_feature: true
+  clip_seconds: 4
+  eeg_window_ms: 200
+  eeg_window_stride_ms: 50
+
+eval:
+  compute_video_metrics: true
+  compute_frame_metrics: true
+  compute_intermediate_metrics: true
+  save_keyframe_vis: true
+  save_motion_vis: true

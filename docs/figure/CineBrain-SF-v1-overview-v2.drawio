@@ -1,0 +1,427 @@
+<mxGraphModel dx="1700" dy="950" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="0" pageScale="1" pageWidth="1700" pageHeight="900" math="0" shadow="1">
+<root>
+<mxCell id="0"/>
+<mxCell id="1" parent="0"/>
+
+<!-- ===== TITLE ===== -->
+<mxCell id="2" value="CineBrain-SF v1 — Model Overview" style="text;fontSize=20;fontStyle=1;fontColor=#1F2937;align=center;verticalAlign=middle;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="350" y="5" width="700" height="35" as="geometry"/>
+</mxCell>
+
+<!-- ===== STIMULUS LABEL ===== -->
+<mxCell id="5" value="Naturalistic Movie Stimulus" style="text;fontSize=10;fontStyle=3;fontColor=#374151;align=center;verticalAlign=middle;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="25" y="48" width="230" height="22" as="geometry"/>
+</mxCell>
+
+<!-- ===== fMRI INPUT ===== -->
+<mxCell id="20" value="fMRI Pathway" style="swimlane;startSize=22;fontSize=10;fontStyle=1;fillColor=#EFF6FF;strokeColor=#3B82F6;rounded=1;shadow=1;fontColor=#1E40AF;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="20" y="78" width="240" height="185" as="geometry"/>
+</mxCell>
+<mxCell id="21" value="fMRI (226 ROIs, 2s TR)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=10;fontStyle=1;fontColor=#1E40AF;shadow=1;fontFamily=Helvetica;" vertex="1" parent="20">
+  <mxGeometry x="15" y="30" width="210" height="40" as="geometry"/>
+</mxCell>
+<mxCell id="22" value="fMRI Encoder&#xa;(24-layer Transformer)" style="rounded=1;fillColor=#BFDBFE;strokeColor=#2563EB;fontSize=10;fontStyle=1;fontColor=#1E3A8A;shadow=1;fontFamily=Helvetica;" vertex="1" parent="20">
+  <mxGeometry x="15" y="90" width="210" height="48" as="geometry"/>
+</mxCell>
+<mxCell id="23" value="spatial (B,226,2048) + CLS (B,1152)" style="text;fontSize=7;fontColor=#6B7280;fontStyle=2;align=center;fontFamily=Helvetica;" vertex="1" parent="20">
+  <mxGeometry x="15" y="148" width="210" height="16" as="geometry"/>
+</mxCell>
+<mxCell id="24" style="endArrow=classic;strokeColor=#2563EB;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="20" source="21" target="22">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- ===== EEG INPUT ===== -->
+<mxCell id="30" value="EEG Pathway" style="swimlane;startSize=22;fontSize=10;fontStyle=1;fillColor=#FFF7ED;strokeColor=#F97316;rounded=1;shadow=1;fontColor=#9A3412;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="20" y="325" width="240" height="185" as="geometry"/>
+</mxCell>
+<mxCell id="31" value="EEG (64ch × 800, 200Hz)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=10;fontStyle=1;fontColor=#9A3412;shadow=1;fontFamily=Helvetica;" vertex="1" parent="30">
+  <mxGeometry x="15" y="30" width="210" height="40" as="geometry"/>
+</mxCell>
+<mxCell id="32" value="EEG Encoder&#xa;(12-layer Transformer)" style="rounded=1;fillColor=#FDBA74;strokeColor=#EA580C;fontSize=10;fontStyle=1;fontColor=#7C2D12;shadow=1;fontFamily=Helvetica;" vertex="1" parent="30">
+  <mxGeometry x="15" y="90" width="210" height="48" as="geometry"/>
+</mxCell>
+<mxCell id="33" value="spatial (B,226,2048)" style="text;fontSize=7;fontColor=#6B7280;fontStyle=2;align=center;fontFamily=Helvetica;" vertex="1" parent="30">
+  <mxGeometry x="15" y="148" width="210" height="16" as="geometry"/>
+</mxCell>
+<mxCell id="34" style="endArrow=classic;strokeColor=#EA580C;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="30" source="31" target="32">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- ===== SLOW BRANCH ===== -->
+<mxCell id="40" value="Slow Branch (fMRI-dominant)" style="swimlane;startSize=26;fontSize=12;fontStyle=1;fillColor=#EFF6FF;strokeColor=#3B82F6;rounded=1;shadow=1;fontColor=#1E40AF;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="300" y="48" width="400" height="220" as="geometry"/>
+</mxCell>
+<mxCell id="41" value="Keyframe&#xa;Head" style="rounded=1;fillColor=#93C5FD;strokeColor=#2563EB;fontSize=10;fontStyle=1;fontColor=#1E3A8A;shadow=1;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="15" y="42" width="105" height="42" as="geometry"/>
+</mxCell>
+<mxCell id="42" value="Scene-Text&#xa;Head" style="rounded=1;fillColor=#93C5FD;strokeColor=#2563EB;fontSize=10;fontStyle=1;fontColor=#1E3A8A;shadow=1;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="15" y="108" width="105" height="42" as="geometry"/>
+</mxCell>
+<mxCell id="43" value="z_key&#xa;(B, 1152)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=9;fontColor=#1E40AF;shadow=1;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="160" y="42" width="95" height="38" as="geometry"/>
+</mxCell>
+<mxCell id="44" value="z_txt&#xa;(B, 1152)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=9;fontColor=#1E40AF;shadow=1;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="160" y="112" width="95" height="38" as="geometry"/>
+</mxCell>
+<mxCell id="45" value="slow_feat&#xa;(B, 226, 2048)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=8;fontColor=#1E40AF;shadow=1;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="285" y="68" width="105" height="42" as="geometry"/>
+</mxCell>
+<mxCell id="46" value="Slow-varying semantics &amp; structure" style="text;fontSize=9;fontStyle=2;fontColor=#3B82F6;align=center;fontFamily=Helvetica;" vertex="1" parent="40">
+  <mxGeometry x="80" y="172" width="230" height="18" as="geometry"/>
+</mxCell>
+<mxCell id="47" style="endArrow=classic;strokeColor=#2563EB;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="40" source="41" target="43">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="48" style="endArrow=classic;strokeColor=#2563EB;strokeWidth=1.5;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" edge="1" parent="40" source="42" target="44">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="49" value="SLOW" style="text;fontSize=30;fontStyle=1;fontColor=#DBEAFE;align=center;verticalAlign=middle;fontFamily=Helvetica;opacity=45;" vertex="1" parent="40">
+  <mxGeometry x="278" y="130" width="115" height="55" as="geometry"/>
+</mxCell>
+
+<!-- ===== FAST BRANCH ===== -->
+<mxCell id="60" value="Fast Branch (EEG-dominant)" style="swimlane;startSize=26;fontSize=12;fontStyle=1;fillColor=#FFF7ED;strokeColor=#F97316;rounded=1;shadow=1;fontColor=#9A3412;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="300" y="300" width="400" height="330" as="geometry"/>
+</mxCell>
+
+<!-- P0: Feature Distillation sub-section -->
+<mxCell id="61" value="P0: Feature Distillation" style="swimlane;startSize=20;fontSize=9;fontStyle=1;fillColor=#FFEDD5;strokeColor=#FB923C;rounded=1;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="60">
+  <mxGeometry x="10" y="35" width="180" height="195" as="geometry"/>
+</mxCell>
+<mxCell id="62" value="Temporal&#xa;Attention Pool" style="rounded=1;fillColor=#FDBA74;strokeColor=#EA580C;fontSize=9;fontColor=#7C2D12;shadow=1;fontFamily=Helvetica;" vertex="1" parent="61">
+  <mxGeometry x="10" y="28" width="160" height="35" as="geometry"/>
+</mxCell>
+<mxCell id="63" value="Spatial Projector&#xa;→ (B, 2048)" style="rounded=1;fillColor=#FB923C;strokeColor=#EA580C;fontSize=8;fontColor=#7C2D12;shadow=1;fontFamily=Helvetica;" vertex="1" parent="61">
+  <mxGeometry x="10" y="75" width="160" height="35" as="geometry"/>
+</mxCell>
+<mxCell id="64" value="CLS Projector&#xa;→ (B, 1152)" style="rounded=1;fillColor=#FB923C;strokeColor=#EA580C;fontSize=8;fontColor=#7C2D12;shadow=1;fontFamily=Helvetica;" vertex="1" parent="61">
+  <mxGeometry x="10" y="122" width="160" height="35" as="geometry"/>
+</mxCell>
+<mxCell id="65" value="MSE distill (teacher: frozen fMRI)" style="text;fontSize=7;fontStyle=2;fontColor=#3B82F6;align=center;fontFamily=Helvetica;" vertex="1" parent="61">
+  <mxGeometry x="5" y="165" width="170" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="66" style="endArrow=classic;strokeColor=#EA580C;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="61" source="62" target="63">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="67" style="endArrow=classic;strokeColor=#EA580C;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="61" source="63" target="64">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- P1: Temporal Dynamics Decoder sub-section -->
+<mxCell id="70" value="P1: Temporal Dynamics Decoder" style="swimlane;startSize=20;fontSize=9;fontStyle=1;fillColor=#FFEDD5;strokeColor=#FB923C;rounded=1;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="60">
+  <mxGeometry x="200" y="35" width="190" height="250" as="geometry"/>
+</mxCell>
+<mxCell id="71" value="Cross-Attn Decoder&#xa;(4 layers, causal mask)&#xa;T+1 queries → EEG tokens" style="rounded=1;fillColor=#FDBA74;strokeColor=#EA580C;fontSize=8;fontStyle=1;fontColor=#7C2D12;shadow=1;fontFamily=Helvetica;" vertex="1" parent="70">
+  <mxGeometry x="10" y="28" width="170" height="55" as="geometry"/>
+</mxCell>
+<mxCell id="72" value="temporal_tokens&#xa;(B, 9, 1152)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=8;fontColor=#9A3412;shadow=1;fontFamily=Helvetica;" vertex="1" parent="70">
+  <mxGeometry x="10" y="95" width="170" height="30" as="geometry"/>
+</mxCell>
+<mxCell id="73" value="global_dyn_token&#xa;(B, 1152)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=8;fontColor=#9A3412;shadow=1;fontFamily=Helvetica;" vertex="1" parent="70">
+  <mxGeometry x="10" y="135" width="170" height="30" as="geometry"/>
+</mxCell>
+<mxCell id="74" value="flow_traj&#xa;(B, 9)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=7;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="70">
+  <mxGeometry x="10" y="178" width="78" height="28" as="geometry"/>
+</mxCell>
+<mxCell id="75" value="dyn_logits&#xa;(B, 2)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=7;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="70">
+  <mxGeometry x="98" y="178" width="82" height="28" as="geometry"/>
+</mxCell>
+<mxCell id="770" style="endArrow=classic;strokeColor=#EA580C;strokeWidth=1;exitX=0.3;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="70" source="71" target="72">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="771" style="endArrow=classic;strokeColor=#EA580C;strokeWidth=1;exitX=0.7;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="70" source="71" target="73">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- Fast branch: fast_feat output -->
+<mxCell id="79" value="fast_feat&#xa;(B, 226, 2048)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=8;fontColor=#9A3412;shadow=1;fontFamily=Helvetica;" vertex="1" parent="60">
+  <mxGeometry x="10" y="290" width="105" height="28" as="geometry"/>
+</mxCell>
+<mxCell id="78" value="Fast-varying motion &amp; temporal dynamics" style="text;fontSize=9;fontStyle=2;fontColor=#EA580C;align=center;fontFamily=Helvetica;" vertex="1" parent="60">
+  <mxGeometry x="130" y="295" width="260" height="18" as="geometry"/>
+</mxCell>
+<mxCell id="77" value="FAST" style="text;fontSize=28;fontStyle=1;fontColor=#FED7AA;align=center;verticalAlign=middle;fontFamily=Helvetica;opacity=40;" vertex="1" parent="60">
+  <mxGeometry x="10" y="240" width="90" height="45" as="geometry"/>
+</mxCell>
+
+<!-- ===== CROSS-MODAL GATED FUSION ===== -->
+<mxCell id="90" value="Cross-Modal&#xa;Gated Fusion" style="swimlane;startSize=36;fontSize=11;fontStyle=1;fillColor=#EDE9FE;strokeColor=#8B5CF6;rounded=1;shadow=1;fontColor=#5B21B6;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="740" y="55" width="200" height="530" as="geometry"/>
+</mxCell>
+<mxCell id="91" value="Concat + Linear&#xa;→ (B, 226, 2048)" style="rounded=1;fillColor=#DDD6FE;strokeColor=#7C3AED;fontSize=9;fontColor=#5B21B6;shadow=1;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="15" y="48" width="170" height="38" as="geometry"/>
+</mxCell>
+<mxCell id="92" value="Modality&#xa;Embeddings" style="rounded=1;fillColor=#DDD6FE;strokeColor=#7C3AED;fontSize=9;fontColor=#5B21B6;shadow=1;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="15" y="100" width="170" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="93" value="4-layer Fusion&#xa;Transformer&#xa;(452 tokens)" style="rounded=1;fillColor=#C4B5FD;strokeColor=#7C3AED;fontSize=9;fontStyle=1;fontColor=#4C1D95;shadow=1;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="15" y="146" width="170" height="52" as="geometry"/>
+</mxCell>
+
+<!-- Split outputs: z_b (left) and Gating (right) -->
+<mxCell id="94" value="z_b&#xa;(B, 226, 4096)" style="rounded=1;fillColor=#DDD6FE;strokeColor=#8B5CF6;fontSize=9;fontStyle=1;fontColor=#5B21B6;shadow=1;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="8" y="215" width="88" height="48" as="geometry"/>
+</mxCell>
+<mxCell id="95" value="Gating&#xa;Network" style="rounded=1;fillColor=#C4B5FD;strokeColor=#7C3AED;fontSize=9;fontStyle=1;fontColor=#4C1D95;shadow=1;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="104" y="215" width="88" height="48" as="geometry"/>
+</mxCell>
+
+<!-- Alpha weights box -->
+<mxCell id="96" value="α_key   α_txt&#xa;α_mot   α_brain" style="rounded=1;fillColor=#EDE9FE;strokeColor=#8B5CF6;fontSize=8;fontStyle=1;fontColor=#5B21B6;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="104" y="278" width="88" height="38" as="geometry"/>
+</mxCell>
+<mxCell id="97" value="Adaptive weighting" style="text;fontSize=8;fontStyle=2;fontColor=#7C3AED;align=center;fontFamily=Helvetica;" vertex="1" parent="90">
+  <mxGeometry x="80" y="322" width="115" height="18" as="geometry"/>
+</mxCell>
+
+<!-- Fusion internal edges -->
+<mxCell id="901" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="90" source="91" target="92">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="902" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="90" source="92" target="93">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="903" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=1.5;exitX=0.25;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="90" source="93" target="94">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="904" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=1.5;exitX=0.75;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="90" source="93" target="95">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="905" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=1;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="90" source="95" target="96">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- ===== MULTI-GUIDANCE ADAPTER ===== -->
+<mxCell id="110" value="Multi-Guidance Adapter" style="swimlane;startSize=26;fontSize=11;fontStyle=1;fillColor=#CCFBF1;strokeColor=#0D9488;rounded=1;shadow=1;fontColor=#0F766E;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="980" y="55" width="210" height="420" as="geometry"/>
+</mxCell>
+<mxCell id="111" value="z_b (main latent)&#xa;(B, 226, 4096)" style="rounded=1;fillColor=#99F6E4;strokeColor=#14B8A6;fontSize=9;fontStyle=1;fontColor=#0F766E;shadow=1;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="38" width="180" height="35" as="geometry"/>
+</mxCell>
+<mxCell id="112" value="+ α_key · KeyProj(z_key)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=8;fontColor=#1E40AF;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="85" width="180" height="26" as="geometry"/>
+</mxCell>
+<mxCell id="113" value="+ α_txt · TxtProj(z_txt)" style="rounded=1;fillColor=#DBEAFE;strokeColor=#60A5FA;fontSize=8;fontColor=#1E40AF;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="118" width="180" height="26" as="geometry"/>
+</mxCell>
+<mxCell id="114" value="+ α_mot · MotProj(eeg_pooled)" style="rounded=1;fillColor=#FED7AA;strokeColor=#FB923C;fontSize=8;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="151" width="180" height="26" as="geometry"/>
+</mxCell>
+<mxCell id="115" value="+ α_brain · z_b (residual)" style="rounded=1;fillColor=#EDE9FE;strokeColor=#8B5CF6;fontSize=8;fontColor=#5B21B6;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="184" width="180" height="26" as="geometry"/>
+</mxCell>
+
+<!-- Summation -->
+<mxCell id="116" value="Σ" style="ellipse;fillColor=#5EEAD4;strokeColor=#0D9488;fontSize=16;fontStyle=1;fontColor=#134E4A;shadow=1;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="82" y="224" width="36" height="36" as="geometry"/>
+</mxCell>
+
+<mxCell id="117" value="LayerNorm + Linear" style="rounded=1;fillColor=#99F6E4;strokeColor=#14B8A6;fontSize=9;fontColor=#0F766E;shadow=1;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="278" width="180" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="118" value="context&#xa;(B, 226, 4096)" style="rounded=1;fillColor=#5EEAD4;strokeColor=#0D9488;fontSize=10;fontStyle=1;fontColor=#134E4A;shadow=1;fontFamily=Helvetica;" vertex="1" parent="110">
+  <mxGeometry x="15" y="330" width="180" height="42" as="geometry"/>
+</mxCell>
+
+<!-- MGA internal edges -->
+<mxCell id="1101" style="endArrow=classic;strokeColor=#0D9488;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="110" source="116" target="117">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="1102" style="endArrow=classic;strokeColor=#0D9488;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="110" source="117" target="118">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- ===== VIDEO DIFFUSION DECODER ===== -->
+<mxCell id="130" value="CogVideoX-5B DiT + LoRA" style="swimlane;startSize=26;fontSize=11;fontStyle=1;fillColor=#ECFDF5;strokeColor=#10B981;rounded=1;shadow=1;fontColor=#065F46;fontFamily=Helvetica;arcSize=8;" vertex="1" parent="1">
+  <mxGeometry x="1230" y="75" width="210" height="400" as="geometry"/>
+</mxCell>
+<mxCell id="131" value="Gaussian Noise z_T&#xa;(latent video)" style="rounded=1;fillColor=#D1FAE5;strokeColor=#34D399;fontSize=9;fontColor=#065F46;shadow=1;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="20" y="40" width="170" height="38" as="geometry"/>
+</mxCell>
+<mxCell id="132" value="DiT Blocks&#xa;× N layers" style="rounded=1;fillColor=#6EE7B7;strokeColor=#059669;fontSize=11;fontStyle=1;fontColor=#064E3B;shadow=1;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="20" y="105" width="170" height="70" as="geometry"/>
+</mxCell>
+<mxCell id="133" value="LoRA" style="rounded=1;fillColor=#34D399;strokeColor=#059669;fontSize=8;fontStyle=1;fontColor=#064E3B;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="135" y="105" width="55" height="22" as="geometry"/>
+</mxCell>
+<mxCell id="134" value="← cross-attn&#xa;    from context" style="text;fontSize=8;fontStyle=2;fontColor=#059669;align=left;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="20" y="182" width="120" height="25" as="geometry"/>
+</mxCell>
+<mxCell id="135" value="Iterative&#xa;Denoising" style="rounded=1;fillColor=#A7F3D0;strokeColor=#059669;fontSize=9;fontColor=#065F46;shadow=1;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="20" y="218" width="170" height="40" as="geometry"/>
+</mxCell>
+<mxCell id="136" value="Reconstructed Video&#xa;(13 frames @ 8fps, ~2s)" style="rounded=1;fillColor=#34D399;strokeColor=#059669;fontSize=10;fontStyle=1;fontColor=#064E3B;shadow=1;fontFamily=Helvetica;" vertex="1" parent="130">
+  <mxGeometry x="20" y="290" width="170" height="55" as="geometry"/>
+</mxCell>
+
+<!-- DiT internal edges -->
+<mxCell id="1301" style="endArrow=classic;strokeColor=#059669;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="130" source="131" target="132">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="1302" style="endArrow=classic;strokeColor=#059669;strokeWidth=1.5;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="130" source="132" target="135">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="1303" style="endArrow=classic;strokeColor=#059669;strokeWidth=2;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="130" source="135" target="136">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- ===== SUPERVISION STRIP ===== -->
+<mxCell id="160" value="Offline Supervision Targets" style="swimlane;startSize=20;fontSize=10;fontStyle=1;fillColor=#F3F4F6;strokeColor=#6B7280;rounded=1;shadow=1;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="300" y="660" width="930" height="72" as="geometry"/>
+</mxCell>
+<mxCell id="161" value="SigLIP&#xa;Key Emb" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="10" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="162" value="SigLIP&#xa;Cap Emb" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="120" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="163" value="fMRI Feat&#xa;(teacher)" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="235" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="164" value="SigLIP&#xa;Frame Δ" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="350" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="165" value="Optical&#xa;Flow Traj" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="465" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="166" value="Dyn/Static&#xa;Label" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="580" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+<mxCell id="167" value="Diffusion&#xa;Target ε" style="rounded=1;fillColor=#E5E7EB;strokeColor=#9CA3AF;fontSize=7;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="160">
+  <mxGeometry x="710" y="26" width="95" height="32" as="geometry"/>
+</mxCell>
+
+<!-- ===== MAIN DATA FLOW EDGES ===== -->
+
+<!-- fMRI Input → Slow Branch -->
+<mxCell id="200" style="endArrow=classic;strokeColor=#3B82F6;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.35;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="20" target="40">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- EEG Input → Fast Branch -->
+<mxCell id="201" style="endArrow=classic;strokeColor=#F97316;strokeWidth=2;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.25;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="30" target="60">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+
+<!-- fMRI → Fast Branch P0 (teacher signal, dashed blue) -->
+<mxCell id="202" style="endArrow=classic;strokeColor=#3B82F6;strokeWidth=1.5;dashed=1;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0;entryY=0.55;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="20" target="60">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="202l" value="teacher (frozen fMRI)" style="edgeLabel;fontSize=7;fontColor=#3B82F6;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="202">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="-5" y="12" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Slow Branch → Fusion (slow_feat) -->
+<mxCell id="203" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=2;exitX=1;exitY=0.45;exitDx=0;exitDy=0;entryX=0;entryY=0.12;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="40" target="90">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="203l" value="slow_feat" style="edgeLabel;fontSize=8;fontColor=#3B82F6;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="203">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="-5" y="-10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Fast Branch → Fusion (fast_feat) -->
+<mxCell id="204" style="endArrow=classic;strokeColor=#7C3AED;strokeWidth=2;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0;entryY=0.88;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="60" target="90">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="204l" value="fast_feat" style="edgeLabel;fontSize=8;fontColor=#F97316;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="204">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="-5" y="10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Fusion z_b → MGA -->
+<mxCell id="205" style="endArrow=classic;strokeColor=#0D9488;strokeWidth=2.5;exitX=1;exitY=0.42;exitDx=0;exitDy=0;entryX=0;entryY=0.12;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="90" target="110">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="205l" value="z_b" style="edgeLabel;fontSize=9;fontColor=#0D9488;fontStyle=1;fontFamily=Helvetica;" vertex="1" connectable="0" parent="205">
+  <mxGeometry relative="1" as="geometry"><mxPoint y="-10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Fusion alphas → MGA -->
+<mxCell id="206" style="endArrow=classic;strokeColor=#8B5CF6;strokeWidth=1.5;dashed=1;dashPattern=8 4;exitX=1;exitY=0.65;exitDx=0;exitDy=0;entryX=0;entryY=0.52;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="90" target="110">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="206l" value="α weights" style="edgeLabel;fontSize=8;fontColor=#8B5CF6;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="206">
+  <mxGeometry relative="1" as="geometry"><mxPoint y="10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Slow Branch → MGA bypass (z_key, z_txt, top arc) -->
+<mxCell id="207" style="endArrow=classic;strokeColor=#3B82F6;strokeWidth=1.5;curved=1;exitX=0.8;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=0;entryDx=0;entryDy=0;" edge="1" parent="1" source="40" target="110">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="700" y="30"/>
+      <mxPoint x="880" y="25"/>
+      <mxPoint x="1060" y="35"/>
+    </Array>
+  </mxGeometry>
+</mxCell>
+<mxCell id="207l" value="z_key, z_txt" style="edgeLabel;fontSize=8;fontColor=#3B82F6;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="207">
+  <mxGeometry relative="1" as="geometry"><mxPoint y="-8" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Fast Branch → MGA bypass (eeg_pooled, bottom arc) -->
+<mxCell id="208" style="endArrow=classic;strokeColor=#F97316;strokeWidth=1.5;curved=1;exitX=0.8;exitY=1;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="60" target="110">
+  <mxGeometry relative="1" as="geometry">
+    <Array as="points">
+      <mxPoint x="640" y="648"/>
+      <mxPoint x="880" y="648"/>
+      <mxPoint x="1060" y="495"/>
+    </Array>
+  </mxGeometry>
+</mxCell>
+<mxCell id="208l" value="eeg_pooled" style="edgeLabel;fontSize=8;fontColor=#F97316;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="208">
+  <mxGeometry relative="1" as="geometry"><mxPoint y="10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- MGA context → DiT (cross-attention) -->
+<mxCell id="209" style="endArrow=classic;strokeColor=#059669;strokeWidth=2.5;exitX=1;exitY=0.82;exitDx=0;exitDy=0;entryX=0;entryY=0.42;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="110" target="130">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="209l" value="context (cross-attn)" style="edgeLabel;fontSize=8;fontColor=#059669;fontStyle=1;fontFamily=Helvetica;" vertex="1" connectable="0" parent="209">
+  <mxGeometry relative="1" as="geometry"><mxPoint y="-10" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Supervision → Slow Branch (dashed) -->
+<mxCell id="210" style="endArrow=classic;strokeColor=#9CA3AF;strokeWidth=1;dashed=1;exitX=0.1;exitY=0;exitDx=0;exitDy=0;entryX=0.2;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="160" target="40">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="210l" value="L_key, L_txt" style="edgeLabel;fontSize=7;fontColor=#9CA3AF;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="210">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="-25" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Supervision → Fast Branch (dashed) -->
+<mxCell id="211" style="endArrow=classic;strokeColor=#9CA3AF;strokeWidth=1;dashed=1;exitX=0.45;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" edge="1" parent="1" source="160" target="60">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="211l" value="L_distill, L_temp, L_flow, L_dyn" style="edgeLabel;fontSize=7;fontColor=#9CA3AF;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="211">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="35" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- Supervision → DiT (dashed) -->
+<mxCell id="212" style="endArrow=classic;strokeColor=#9CA3AF;strokeWidth=1;dashed=1;exitX=0.85;exitY=0;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;curved=1;" edge="1" parent="1" source="160" target="130">
+  <mxGeometry relative="1" as="geometry"/>
+</mxCell>
+<mxCell id="212l" value="L_diff" style="edgeLabel;fontSize=7;fontColor=#9CA3AF;fontStyle=2;fontFamily=Helvetica;" vertex="1" connectable="0" parent="212">
+  <mxGeometry relative="1" as="geometry"><mxPoint x="15" as="offset"/></mxGeometry>
+</mxCell>
+
+<!-- ===== LEGEND ===== -->
+<mxCell id="300" value="fMRI / Slow" style="rounded=1;fillColor=#DBEAFE;strokeColor=#3B82F6;fontSize=8;fontColor=#1E40AF;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="20" y="665" width="75" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="301" value="EEG / Fast" style="rounded=1;fillColor=#FED7AA;strokeColor=#F97316;fontSize=8;fontColor=#9A3412;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="105" y="665" width="75" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="302" value="Fusion" style="rounded=1;fillColor=#EDE9FE;strokeColor=#8B5CF6;fontSize=8;fontColor=#5B21B6;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="190" y="665" width="65" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="303" value="Guidance" style="rounded=1;fillColor=#CCFBF1;strokeColor=#0D9488;fontSize=8;fontColor=#0F766E;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="20" y="695" width="75" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="304" value="Decoder" style="rounded=1;fillColor=#ECFDF5;strokeColor=#10B981;fontSize=8;fontColor=#065F46;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="105" y="695" width="75" height="20" as="geometry"/>
+</mxCell>
+<mxCell id="305" value="Supervision" style="rounded=1;fillColor=#F3F4F6;strokeColor=#6B7280;fontSize=8;fontColor=#374151;fontFamily=Helvetica;" vertex="1" parent="1">
+  <mxGeometry x="190" y="695" width="65" height="20" as="geometry"/>
+</mxCell>
+
+</root>
+</mxGraphModel>
