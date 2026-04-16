@@ -198,13 +198,17 @@ class FastBranchDistillLoss(nn.Module):
 
 class GuidanceLoss(nn.Module):
     """Guidance consistency: head predictions should match stimulus embeddings."""
-    def __init__(self, lambda_gk=0.5, lambda_gt=0.5, lambda_gm=0.5):
+    def __init__(self, lambda_gk=0.5, lambda_gt=0.5, lambda_gm=0.5, lgm_ema_momentum=0.99):
         super().__init__()
         self.lambda_gk = lambda_gk
         self.lambda_gt = lambda_gt
         self.lambda_gm = lambda_gm
+        self.lgm_ema_momentum = lgm_ema_momentum
+        # EMA of scale factor for L_gm (uses -1.0 sentinel for "uninitialized")
+        # Needed because per-GPU bs=1: current-batch mean would collapse MSE to 0.
+        self.register_buffer("_lgm_scale_ema", torch.tensor(-1.0))
 
-    def forward(self, slow_out, fast_out, video_embed=None, text_embed=None, motion_embed=None):
+    def forward(self, slow_out, fast_out, video_embed=None, text_embed=None, flow_mag_traj=None):
         _ref = next(iter(slow_out.values()))
         losses = {}
         total = _ref.new_tensor(0.0)
@@ -218,14 +222,21 @@ class GuidanceLoss(nn.Module):
             losses["L_gt"] = cos_sim.new_tensor(1.0) - cos_sim
             total = total + self.lambda_gt * losses["L_gt"]
 
-        # L_gm: motion guidance — detached-scale MSE (bs=1 safe, replaces broken cosine_similarity(dim=0))
-        if motion_embed is not None:
-            mot_pred = fast_out.get("global_dyn_token", fast_out.get("eeg_cls_proj"))
-            if mot_pred is not None:
-                target = motion_embed.detach()
-                scale = target.norm(dim=-1, keepdim=True).clamp(min=1e-6)
-                losses["L_gm"] = F.mse_loss(mot_pred / scale, target / scale)
-                total = total + self.lambda_gm * losses["L_gm"]
+        # L_gm: motion guidance — EMA-scale MSE on scalar motion energy (bs=1 safe)
+        # EEG feature norm should correlate with average flow magnitude per clip.
+        # EMA scale (not current-batch) prevents MSE from trivially zeroing at bs=1.
+        if self.lambda_gm > 0 and "eeg_pooled_proj" in fast_out and flow_mag_traj is not None:
+            mot_energy = fast_out["eeg_pooled_proj"].norm(dim=-1)           # (B,)
+            flow_energy = flow_mag_traj.mean(dim=-1)                         # (B,)
+            with torch.no_grad():
+                curr_scale = (flow_energy.detach().mean() / (mot_energy.detach().mean() + 1e-8)).clamp(0.01, 100)
+                if self._lgm_scale_ema.item() < 0:
+                    self._lgm_scale_ema.copy_(curr_scale)
+                else:
+                    self._lgm_scale_ema.mul_(self.lgm_ema_momentum).add_(curr_scale, alpha=1.0 - self.lgm_ema_momentum)
+            scale = self._lgm_scale_ema
+            losses["L_gm"] = F.mse_loss(mot_energy * scale, flow_energy)
+            total = total + self.lambda_gm * losses["L_gm"]
 
         return total, losses
 
