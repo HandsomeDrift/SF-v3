@@ -1,0 +1,23 @@
+# Direction ① path A — E4_reverse_clamped: reverse sigmoid + alpha_max clamp.
+#
+# E4_reverse (amp=-0.5) pushes α_brain (base=0.744) to 0.744 * 1.5 = 1.116 at τ=1
+# (late / low-noise step), mirroring the OOD that E4_sigmoid_mid creates at τ=0.
+# Per H** the key asymmetry is "early OOD compounds 49 steps → FVD灾难; late OOD
+# only affects refinement → FVD 可接受" — which is why reverse's FVD=425 beats
+# E4_sigmoid_mid's 1194.
+#
+# This run clamps α ≤ 0.95 on top of reverse to test:
+#   - If FVD ≈ 425 (unchanged) → late-step OOD is benign, reverse's 425 is
+#     "real" schedule benefit from slow-late / fast-early direction.
+#   - If FVD significantly < 425 → late OOD still contributes residual refinement
+#     noise that also helps; Path B must learn α(τ) not just pick direction.
+#   - If FVD > 425 → late OOD actually helps FVD (anti-H**); would be surprising.
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: sigmoid
+        amp: -0.5
+        midpoint: 0.5
+        steepness: 6.0
+        alpha_max: 0.95

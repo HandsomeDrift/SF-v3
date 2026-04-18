@@ -342,8 +342,16 @@ class SATVideoDiffusionEngineBrain(nn.Module):
             num_steps = self.sampler.num_steps + 1
             start_step = int((1.0 - sdedit_strength) * num_steps)
 
+        # Direction ① path A: expose the (SF) embedder to the sampler so it can
+        # remix crossattn per step when alpha_schedule is configured. Falls
+        # through harmlessly for non-SF models or when expose_premix=False.
+        sf_embedder = None
+        if hasattr(self, "conditioner") and hasattr(self.conditioner, "embedders") \
+                and len(self.conditioner.embedders) > 0:
+            sf_embedder = self.conditioner.embedders[0]
+
         samples = self.sampler(denoiser, randn, cond, uc=uc, scale=scale, scale_emb=scale_emb, ofs=ofs,
-                               start_step=start_step, init_latent=init_latent)
+                               start_step=start_step, init_latent=init_latent, embedder=sf_embedder)
         samples = samples.to(self.dtype)
         return samples
 
@@ -786,8 +794,16 @@ class SATVideoDiffusionEngineBrain_fix(nn.Module):
             num_steps = self.sampler.num_steps + 1
             start_step = int((1.0 - sdedit_strength) * num_steps)
 
+        # Direction ① path A: expose the (SF) embedder to the sampler so it can
+        # remix crossattn per step when alpha_schedule is configured. Falls
+        # through harmlessly for non-SF models or when expose_premix=False.
+        sf_embedder = None
+        if hasattr(self, "conditioner") and hasattr(self.conditioner, "embedders") \
+                and len(self.conditioner.embedders) > 0:
+            sf_embedder = self.conditioner.embedders[0]
+
         samples = self.sampler(denoiser, randn, cond, uc=uc, scale=scale, scale_emb=scale_emb, ofs=ofs,
-                               start_step=start_step, init_latent=init_latent)
+                               start_step=start_step, init_latent=init_latent, embedder=sf_embedder)
         samples = samples.to(self.dtype)
         return samples
 

@@ -57,6 +57,48 @@ class MultiGuidanceAdapter(nn.Module):
             nn.Linear(brain_dim, brain_dim),
         )
 
+    def compute_components(self, slow_out, fast_out):
+        """Project raw branch outputs into brain_dim guidance vectors.
+
+        Returns a dict with keys in {"g_key", "g_txt", "g_mot"} when the
+        corresponding channel is enabled; each tensor is (B, brain_dim).
+        Temporal residual (P1) is baked into g_mot so downstream mixing stays
+        a pure linear combination of 4 alpha weights.
+        """
+        components = {}
+        if self.use_keyframe_guidance and "z_key" in slow_out:
+            components["g_key"] = self.key_proj(slow_out["z_key"])
+        if self.use_text_guidance and "z_txt" in slow_out:
+            components["g_txt"] = self.txt_proj(slow_out["z_txt"])
+        if self.use_motion_guidance:
+            eeg_feat = fast_out.get("eeg_pooled_proj", None)
+            if eeg_feat is not None:
+                g_mot = self.mot_proj(eeg_feat)  # (B, brain_dim)
+                if self.use_temporal_guidance and "global_dyn_token" in fast_out:
+                    g_temporal = self.temporal_proj(fast_out["global_dyn_token"])
+                    gate = torch.sigmoid(self.temporal_gate(fast_out["global_dyn_token"]))
+                    g_mot = g_mot + gate * g_temporal
+                components["g_mot"] = g_mot
+        return components
+
+    def mix_context(self, z_b, alphas, components):
+        """Blend precomputed components with per-step alphas into a context.
+
+        Applies the same formula as `forward`, but operates on the output of
+        `compute_components` so callers (e.g. the sampler) can reuse cached
+        components across timesteps with different alphas.
+        """
+        context = z_b.clone()
+        if "g_key" in components:
+            context = context + alphas["alpha_key"].unsqueeze(-1) * components["g_key"].unsqueeze(1)
+        if "g_txt" in components:
+            context = context + alphas["alpha_txt"].unsqueeze(-1) * components["g_txt"].unsqueeze(1)
+        if "g_mot" in components:
+            context = context + alphas["alpha_mot"].unsqueeze(-1) * components["g_mot"].unsqueeze(1)
+        if self.use_brain_latent_guidance:
+            context = context + alphas["alpha_brain"].unsqueeze(-1) * z_b
+        return self.out_proj(context)
+
     def forward(self, z_b, alphas, slow_out, fast_out):
         """
         Args:
@@ -67,31 +109,5 @@ class MultiGuidanceAdapter(nn.Module):
         Returns:
             context: (B, S, brain_dim) final conditioning for DiT
         """
-        context = z_b.clone()
-
-        if self.use_keyframe_guidance and "z_key" in slow_out:
-            g_key = self.key_proj(slow_out["z_key"]).unsqueeze(1)
-            context = context + alphas["alpha_key"].unsqueeze(-1) * g_key
-
-        if self.use_text_guidance and "z_txt" in slow_out:
-            g_txt = self.txt_proj(slow_out["z_txt"]).unsqueeze(1)
-            context = context + alphas["alpha_txt"].unsqueeze(-1) * g_txt
-
-        if self.use_motion_guidance:
-            # v2: use distilled EEG pooled features as motion guidance
-            eeg_feat = fast_out.get("eeg_pooled_proj", None)
-            if eeg_feat is not None:
-                g_mot = self.mot_proj(eeg_feat).unsqueeze(1)  # (B, 1, brain_dim)
-
-                # P1: enhance motion guidance with temporal dynamics (gated residual)
-                if self.use_temporal_guidance and "global_dyn_token" in fast_out:
-                    g_temporal = self.temporal_proj(fast_out["global_dyn_token"])  # (B, brain_dim)
-                    gate = torch.sigmoid(self.temporal_gate(fast_out["global_dyn_token"]))  # (B, 1)
-                    g_mot = g_mot + gate.unsqueeze(-1) * g_temporal.unsqueeze(1)
-
-                context = context + alphas["alpha_mot"].unsqueeze(-1) * g_mot
-
-        if self.use_brain_latent_guidance:
-            context = context + alphas["alpha_brain"].unsqueeze(-1) * z_b
-
-        return self.out_proj(context)
+        components = self.compute_components(slow_out, fast_out)
+        return self.mix_context(z_b, alphas, components)

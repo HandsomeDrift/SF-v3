@@ -1,0 +1,20 @@
+# Direction ① Path A — H** prospective validation
+# Same as E4_sigmoid_mid (amp=+0.5 sigmoid midpoint=0.5 steepness=6) but clamps
+# modulated alpha to <= 0.95 so alpha_brain (base≈0.744) cannot be pushed to
+# 1.08 at tau=0 (early high-noise step).
+#
+# Interpretation after 540 run:
+#   - If FVD collapses from 1194 (E4_sigmoid_mid) down to ~700-800 → H** supported
+#     (alpha_brain OOD + timestep-asymmetric compound error is the amplifier).
+#   - If FVD still >= 1000 → H** weakened; literature-level motion-first mechanism
+#     (ALG, CIL) is the dominant cause even without OOD.
+# Either outcome informs Phase 2 Path B architecture (gate_net + residual design).
+sampler_config:
+  target: sgm.modules.diffusionmodules.sampling.VPSDEDPMPP2MSampler
+  params:
+    alpha_schedule:
+      type: sigmoid
+      amp: 0.5
+      midpoint: 0.5
+      steepness: 6.0
+      alpha_max: 0.95

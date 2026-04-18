@@ -187,11 +187,38 @@ class VideoDiffusionLossSF(VideoDiffusionLoss):
     - branch_pretrain: L_align + L_slow + L_fast (no diffusion loss)
     - fusion: L_align + L_slow + L_fast + L_guide (no diffusion loss)
     - joint: L_diff + L_align + L_slow + L_fast + L_guide
+
+    Direction ① Path B (use_path_b=True):
+      After sigma is sampled for the diffusion term, gate_net is re-invoked
+      with a timestep embedding so α becomes a learned function of (sample, τ).
+      cond["crossattn"] is rebuilt via embedder.guidance_adapter.mix_context
+      before the denoiser call, matching the sampler's per-step remix logic.
+
+      When use_time_noise=True (P2), CIL-style logit-normal noise is applied
+      to z_b before mix_context: heavy noise at high σ (early τ) decays to
+      clean at low σ. This regularizes gate_net away from shortcut solutions
+      that over-rely on brain at the noisy end of the schedule.
     """
-    def __init__(self, training_stage="joint", sf_loss_config=None, lambda_sf=0.003, **kwargs):
+    def __init__(
+        self,
+        training_stage="joint",
+        sf_loss_config=None,
+        lambda_sf=0.003,
+        use_path_b=False,
+        path_b_t_emb_dim=256,
+        use_time_noise=False,
+        time_noise_a=5.0,
+        time_noise_beta_m=0.3,
+        **kwargs,
+    ):
         super().__init__(**kwargs)
         self.training_stage = training_stage
         self.lambda_sf = lambda_sf
+        self.use_path_b = bool(use_path_b)
+        self.path_b_t_emb_dim = int(path_b_t_emb_dim)
+        self.use_time_noise = bool(use_time_noise)
+        self.time_noise_a = float(time_noise_a)
+        self.time_noise_beta_m = float(time_noise_beta_m)
 
         from sgm.modules.diffusionmodules.sf_losses import (
             AlignmentLoss, SlowBranchLoss, FastBranchDistillLoss, GuidanceLoss
@@ -229,6 +256,58 @@ class VideoDiffusionLossSF(VideoDiffusionLoss):
         from sgm.modules.diffusionmodules.sf_losses import AuxAlignmentLoss
         self.aux_align = AuxAlignmentLoss()
         self.lambda_aux = cfg.get("lambda_aux", 0.0)  # 0 by default, enable via config
+
+    def _time_noise_z_b(self, z_b, tau):
+        """CIL-style logit-normal TimeNoise on brain latent z_b.
+
+        β_s = β_m · sigmoid(ε + μ_t),  μ_t = 2 · τ^a - 1
+          τ = alpha_cumprod_sqrt ∈ [0, 1];  τ→0 high noise, τ→1 clean.
+        At τ=1 (clean step), μ_t=+1 → larger β → heavier z_b perturbation;
+        at τ=0 (noisy step), μ_t=-1 → smaller β → lighter perturbation.
+        The sign is intentional: we want gate_net to commit to z_b mostly at
+        late steps; regularizing the clean end prevents shortcut reliance.
+        """
+        eps = torch.randn_like(tau)
+        mu_t = 2.0 * tau.pow(self.time_noise_a) - 1.0
+        beta_s = self.time_noise_beta_m * torch.sigmoid(eps + mu_t)
+        noise = torch.randn_like(z_b)
+        return z_b + beta_s.view(-1, 1, 1).to(z_b.dtype) * noise
+
+    def _apply_path_b_remix(self, cond, conditioner, alphas_cumprod_sqrt):
+        """Rebuild cond["crossattn"] with α(sample, τ) from gate_net + t_emb.
+
+        Mirrors VPSDEDPMPP2MSampler._remix_cond_for_step so training and
+        sampling compute context the same way. No-op when the embedder does
+        not expose the required caches (e.g. non-SF model, fallback path).
+        """
+        if not self.use_path_b:
+            return cond
+        if not (hasattr(conditioner, "embedders") and len(conditioner.embedders) > 0):
+            return cond
+        embedder = conditioner.embedders[0]
+        premix = getattr(embedder, "_last_premix", None)
+        slow_feat = getattr(embedder, "_last_slow_feat", None)
+        fast_feat = getattr(embedder, "_last_fast_feat", None)
+        gated_fusion = getattr(embedder, "gated_fusion", None)
+        if premix is None or slow_feat is None or fast_feat is None or gated_fusion is None:
+            return cond
+
+        from sgm.modules.diffusionmodules.sampling import timestep_embedding
+
+        tau = alphas_cumprod_sqrt.to(slow_feat.device)
+        t_emb = timestep_embedding(tau, dim=self.path_b_t_emb_dim)
+        _, alphas_t = gated_fusion(slow_feat, fast_feat, t_emb=t_emb, tau=tau)
+
+        z_b = premix["z_b"]
+        if self.use_time_noise:
+            z_b = self._time_noise_z_b(z_b, tau)
+
+        new_context = embedder.guidance_adapter.mix_context(
+            z_b, alphas_t, premix["components"]
+        )
+        new_cond = dict(cond)
+        new_cond["crossattn"] = new_context.to(cond["crossattn"].dtype)
+        return new_cond
 
     def __call__(self, network, denoiser, conditioner, input, batch):
         # Run conditioner (SFBrainEmbedder) to get cond and populate _last_slow_out etc.
@@ -310,6 +389,10 @@ class VideoDiffusionLossSF(VideoDiffusionLoss):
 
             if "concat_images" in batch.keys():
                 cond["concat"] = batch["concat_images"]
+
+            # Direction ① Path B: rebuild crossattn with α(sample, τ) before
+            # the denoiser call. No-op when use_path_b=False (v2 behavior).
+            cond = self._apply_path_b_remix(cond, conditioner, alphas_cumprod_sqrt)
 
             model_output = denoiser(network, noised_input, alphas_cumprod_sqrt, cond, **additional_model_inputs)
             w = append_dims(1 / (1 - alphas_cumprod_sqrt**2), input.ndim)

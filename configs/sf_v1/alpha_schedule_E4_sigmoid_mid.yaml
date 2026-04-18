@@ -1,0 +1,9 @@
+# Direction ① path A — E4: sigmoid schedule, transition at τ=0.5.
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: sigmoid
+        amp: 0.5
+        midpoint: 0.5
+        steepness: 6.0

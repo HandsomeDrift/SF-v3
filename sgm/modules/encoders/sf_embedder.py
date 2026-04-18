@@ -57,6 +57,18 @@ class SFBrainEmbedder(AbstractEmbModel):
         fusion_hidden_dim=2048,
         fusion_num_layers=4,
         fixed_weights=False,
+        # Direction ① Path B: learned α(sample, τ) via t_emb-conditioned gate_net.
+        # t_emb_dim=0 disables (v2 behavior); 256 is the recommended Path B setting.
+        gated_fusion_t_emb_dim=0,
+        gated_fusion_t_emb_proj_dim=512,
+        gated_fusion_t_emb_proj_init_std=0.1,
+        # E4_reverse-shaped inductive prior on alpha_logit. Enabling provides a
+        # worst-case floor of `v2 α_base × E4_reverse schedule` (FVD ~425) even
+        # if gate_net's t_emb path never learns meaningful sample-adaptive α(τ).
+        gated_fusion_use_prior_schedule=False,
+        gated_fusion_prior_amp=0.5,
+        gated_fusion_prior_steepness=6.0,
+        gated_fusion_prior_midpoint=0.5,
         # Guidance config
         use_keyframe_guidance=True,
         use_text_guidance=True,
@@ -75,9 +87,12 @@ class SFBrainEmbedder(AbstractEmbModel):
         # Branch freezing for curriculum training
         freeze_slow_branch=False,
         freeze_fast_branch=False,
+        # Expose pre-mix components for timestep-aware alpha remix in sampler (direction ① path A)
+        expose_premix=False,
     ):
         super().__init__()
         self.mode = mode
+        self.expose_premix = expose_premix
         self.use_slow_branch = use_slow_branch
         self.use_fast_branch = use_fast_branch
         self.freeze_slow_branch = freeze_slow_branch
@@ -153,7 +168,16 @@ class SFBrainEmbedder(AbstractEmbModel):
                 num_layers=fusion_num_layers,
                 num_spatial=num_spatial,
                 fixed_weights=fixed_weights,
+                t_emb_dim=gated_fusion_t_emb_dim,
+                t_emb_proj_dim=gated_fusion_t_emb_proj_dim,
+                t_emb_proj_init_std=gated_fusion_t_emb_proj_init_std,
+                use_prior_schedule=gated_fusion_use_prior_schedule,
+                prior_amp=gated_fusion_prior_amp,
+                prior_steepness=gated_fusion_prior_steepness,
+                prior_midpoint=gated_fusion_prior_midpoint,
             )
+        self.gated_fusion_t_emb_dim = int(gated_fusion_t_emb_dim)
+        self.use_path_b = self.gated_fusion_t_emb_dim > 0
 
         if use_multi_guidance and use_slow_branch and use_fast_branch:
             self.guidance_adapter = MultiGuidanceAdapter(
@@ -200,9 +224,18 @@ class SFBrainEmbedder(AbstractEmbModel):
             fast_out = self.fast_branch(eeg)
 
             if self.use_gated_fusion:
-                z_b, alphas = self.gated_fusion(slow_out["slow_feat"], fast_out["fast_feat"])
+                # Cache the raw gate_net inputs so the sampler / loss can
+                # re-invoke gated_fusion(slow_feat, fast_feat, t_emb=...) per
+                # diffusion step without re-running slow_branch / fast_branch.
+                self._last_slow_feat = slow_out["slow_feat"]
+                self._last_fast_feat = fast_out["fast_feat"]
+                z_b, alphas = self.gated_fusion(
+                    slow_out["slow_feat"], fast_out["fast_feat"], t_emb=None,
+                )
             else:
                 # Fallback: simple concat + linear (CineSync-style)
+                self._last_slow_feat = None
+                self._last_fast_feat = None
                 z_b = self.fmri_eeg_linear(
                     torch.cat([slow_out["fmri_spatial"], fast_out["eeg_spatial"]], dim=-1)
                 )
@@ -210,9 +243,20 @@ class SFBrainEmbedder(AbstractEmbModel):
                           for k in ["alpha_key", "alpha_txt", "alpha_mot", "alpha_brain"]}
 
             if self.use_multi_guidance:
-                context = self.guidance_adapter(z_b, alphas, slow_out, fast_out)
+                if self.expose_premix:
+                    components = self.guidance_adapter.compute_components(slow_out, fast_out)
+                    context = self.guidance_adapter.mix_context(z_b, alphas, components)
+                    self._last_premix = {
+                        "z_b": z_b,
+                        "components": components,
+                        "alphas_base": alphas,
+                    }
+                else:
+                    context = self.guidance_adapter(z_b, alphas, slow_out, fast_out)
+                    self._last_premix = None
             else:
                 context = z_b
+                self._last_premix = None
 
             # Store intermediate outputs for loss computation
             self._last_slow_out = slow_out
@@ -230,7 +274,10 @@ class SFBrainEmbedder(AbstractEmbModel):
             )
             self._last_slow_out = {"fmri_cls": fmri_cls, "fmri_spatial": fmri_spatial}
             self._last_fast_out = {"eeg_cls": eeg_cls, "eeg_spatial": eeg_spatial}
+            self._last_slow_feat = None
+            self._last_fast_feat = None
             self._last_alphas = {}
+            self._last_premix = None
             return context, clip_loss
 
     def _compute_clip_loss(self, batch, siglip_model):

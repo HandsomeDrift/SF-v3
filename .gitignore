@@ -11,7 +11,9 @@ venv/
 ckpts_5b/
 
 # Results & logs
-results/
+results/*
+!results/*.md
+!results/
 runs/
 logs/
 

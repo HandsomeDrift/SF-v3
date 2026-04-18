@@ -1,0 +1,15 @@
+# Direction ① path A — E4_reverse: sigmoid schedule with NEGATIVE amplitude.
+# Purpose: directional null test for the Slow-early / Fast-late hypothesis.
+#   amp=-0.5 flips the schedule direction: Slow suppressed early → boosted late,
+#   Fast boosted early → suppressed late. Same shape/midpoint/steepness as E4.
+# Expected outcome (if H1 is true): FVD degrades vs baseline, so the
+#   improvement seen at E4 is attributable to the hypothesized direction,
+#   not to generic modulation noise.
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: sigmoid
+        amp: -0.5
+        midpoint: 0.5
+        steepness: 6.0

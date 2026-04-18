@@ -3,6 +3,7 @@
 """
 
 
+import math
 from typing import Dict, Union
 
 import torch
@@ -21,6 +22,55 @@ from ...util import append_dims, default, instantiate_from_config
 from .guiders import DynamicCFG
 
 DEFAULT_GUIDER = {"target": "sgm.modules.diffusionmodules.guiders.IdentityGuider"}
+
+
+def timestep_embedding(tau: torch.Tensor, dim: int, max_period: float = 10000.0) -> torch.Tensor:
+    """Sinusoidal timestep embedding for a scalar tau tensor in [0, 1].
+
+    Direction ① Path B feeds gate_net a (B, dim) embedding so alpha can be a
+    learned function of (sample, tau). Mirrors DiT's timestep embedding but
+    assumes tau is already normalized to roughly [0, 1] (we pass alpha_cumprod_sqrt
+    directly in both training and sampling for train/infer consistency).
+    """
+    half = dim // 2
+    freqs = torch.exp(
+        -math.log(max_period) * torch.arange(half, device=tau.device, dtype=torch.float32) / half
+    )
+    args = tau.float().view(-1, 1) * freqs.view(1, -1)
+    emb = torch.cat([torch.cos(args), torch.sin(args)], dim=-1)
+    if dim % 2 == 1:
+        emb = torch.nn.functional.pad(emb, (0, 1))
+    return emb
+
+
+def _schedule_value(sched: Dict, tau: float, slow: bool) -> float:
+    """Timestep-aware multiplicative scalar for Slow/Fast alpha channels.
+
+    `tau` is the normalized diffusion step in [0, 1] where 0 = first sampling
+    step (high noise) and 1 = last (low noise). Slow channels are boosted
+    early, Fast channels boosted late.
+    """
+    kind = sched.get("type", "none")
+    if kind == "none" or kind is None:
+        return 1.0
+    amp = float(sched.get("amp", 0.0))
+    if amp == 0.0:
+        return 1.0
+
+    if kind == "linear":
+        # slow: 1+amp at τ=0, 1-amp at τ=1; fast: mirror
+        base = 1.0 - 2.0 * tau  # +1 → -1 as τ goes 0→1
+    elif kind == "cosine":
+        base = math.cos(math.pi * tau)  # +1 → -1 as τ goes 0→1
+    elif kind == "sigmoid":
+        m = float(sched.get("midpoint", 0.5))
+        k = float(sched.get("steepness", 6.0))
+        # 1 at τ=0 → -1 at τ=1 (approximately, with transition around m)
+        base = 1.0 - 2.0 / (1.0 + math.exp(-k * (tau - m)))
+    else:
+        raise ValueError(f"Unknown alpha_schedule type: {kind}")
+
+    return 1.0 + amp * (base if slow else -base)
 
 
 class BaseDiffusionSampler:
@@ -657,6 +707,89 @@ class Image2VideoDDIMSampler(BaseDiffusionSampler):
         return x
 
 class VPSDEDPMPP2MSampler(VideoDDIMSampler):
+    def __init__(self, alpha_schedule=None, path_b=None, **kwargs):
+        super().__init__(**kwargs)
+        # Direction ① path A: timestep-aware multiplicative modulation of learned alphas.
+        # None (or type="none") disables, reproducing v2 static behavior.
+        self.alpha_schedule = alpha_schedule if alpha_schedule is None else dict(alpha_schedule)
+        # Direction ① path B: per-step re-run of gate_net with a timestep embedding
+        # so alpha becomes a learned function of (sample, tau).
+        # path_b: None or dict{"enabled": bool, "t_emb_dim": int}. When enabled
+        # and the embedder exposes _last_slow_feat/_last_fast_feat, gate_net is
+        # invoked per step; otherwise this falls through harmlessly.
+        self.path_b = dict(path_b) if path_b is not None else {}
+        self.use_path_b = bool(self.path_b.get("enabled", False))
+        self.path_b_t_emb_dim = int(self.path_b.get("t_emb_dim", 256))
+
+    def _remix_cond_for_step(self, cond, embedder, i, num_sigmas, alpha_cumprod_sqrt=None):
+        """Rebuild cond["crossattn"] for step i using per-τ alpha modulation.
+
+        Three branches:
+          1. path_b.enabled=True → re-run gate_net(slow_feat, fast_feat, t_emb(tau))
+             for a learned α(sample, τ). Requires embedder._last_slow_feat/_last_fast_feat.
+          2. alpha_schedule set → Path A legacy schedule modulation (v2 inference winner).
+          3. Otherwise cond is returned unchanged (v2 static behavior).
+        """
+        if embedder is None:
+            return cond
+        premix = getattr(embedder, "_last_premix", None)
+        if premix is None:
+            return cond
+
+        # ---- Path B: learned α(sample, τ) via gate_net re-run ----
+        if self.use_path_b:
+            slow_feat = getattr(embedder, "_last_slow_feat", None)
+            fast_feat = getattr(embedder, "_last_fast_feat", None)
+            gated_fusion = getattr(embedder, "gated_fusion", None)
+            if slow_feat is None or fast_feat is None or gated_fusion is None:
+                return cond
+            # τ for t_emb: use alpha_cumprod_sqrt[i] when available (matches training
+            # convention), fall back to i/(num_sigmas-2) if not wired up.
+            if alpha_cumprod_sqrt is not None:
+                tau = alpha_cumprod_sqrt.to(slow_feat.device)
+                if tau.dim() == 0:
+                    tau = tau.view(1).expand(slow_feat.shape[0])
+            else:
+                tau = slow_feat.new_full(
+                    (slow_feat.shape[0],), i / max(num_sigmas - 2, 1),
+                )
+            t_emb = timestep_embedding(tau, dim=self.path_b_t_emb_dim)
+            _, alphas_t = gated_fusion(slow_feat, fast_feat, t_emb=t_emb, tau=tau)
+            new_context = embedder.guidance_adapter.mix_context(
+                premix["z_b"], alphas_t, premix["components"]
+            )
+            new_cond = dict(cond)
+            new_cond["crossattn"] = new_context.to(cond["crossattn"].dtype)
+            return new_cond
+
+        # ---- Path A: hand-crafted schedule (legacy) ----
+        if self.alpha_schedule is None or self.alpha_schedule.get("type", "none") in (None, "none"):
+            return cond
+
+        tau = i / max(num_sigmas - 2, 1)
+        alphas_base = premix["alphas_base"]
+        # H** validation (2026-04-18): optional upper-bound clamp to prevent
+        # modulated alpha from escaping the sigmoid training distribution [0, 1].
+        # When alpha_max is set, alphas_t[k] = min(v * scale, alpha_max). This
+        # tests whether 540-scale FVD collapse under positive-amp schedules is
+        # driven by alpha_brain OOD (base≈0.744, pushed to 1.08 at amp=+0.5).
+        alpha_max = self.alpha_schedule.get("alpha_max", None)
+        alphas_t = {}
+        for k, v in alphas_base.items():
+            is_slow = (k != "alpha_mot")
+            scale = _schedule_value(self.alpha_schedule, tau, slow=is_slow)
+            modulated = v * scale
+            if alpha_max is not None:
+                modulated = modulated.clamp(max=float(alpha_max))
+            alphas_t[k] = modulated
+
+        new_context = embedder.guidance_adapter.mix_context(
+            premix["z_b"], alphas_t, premix["components"]
+        )
+        new_cond = dict(cond)
+        new_cond["crossattn"] = new_context.to(cond["crossattn"].dtype)
+        return new_cond
+
     def get_variables(self, alpha_cumprod_sqrt, next_alpha_cumprod_sqrt, previous_alpha_cumprod_sqrt=None):
         alpha_cumprod = alpha_cumprod_sqrt ** 2
         lamb = ((alpha_cumprod / (1-alpha_cumprod))**0.5).log()
@@ -724,7 +857,7 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         return x, denoised
 
     def __call__(self, denoiser, x, cond, uc=None, num_steps=None, scale=None, scale_emb=None, ofs=None,
-                 start_step=0, init_latent=None): # 1020 + alpha-guidance
+                 start_step=0, init_latent=None, embedder=None): # 1020 + alpha-guidance + direction-① path A
         x, s_in, alpha_cumprod_sqrt, num_sigmas, cond, uc, timesteps = self.prepare_sampling_loop(
             x, cond, uc, num_steps
         )
@@ -748,6 +881,11 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
             if i < start_step:
                 continue
 
+            cond_t = self._remix_cond_for_step(
+                cond, embedder, i, num_sigmas,
+                alpha_cumprod_sqrt=alpha_cumprod_sqrt[i],
+            )
+
             if self.fixed_frames > 0:
                 if self.sdedit:
                     rd = torch.randn_like(prefix_frames)
@@ -762,7 +900,7 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
                 s_in * alpha_cumprod_sqrt[i + 1],
                 denoiser,
                 x,
-                cond,
+                cond_t,
                 uc=uc,
                 idx=self.num_steps - i,
                 timestep=timesteps[-(i+1)],
