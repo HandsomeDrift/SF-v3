@@ -74,13 +74,28 @@
 
 所有通道**完全不饱和**,H\* (v2 gate_net 输出饱和 → 需要 timestep 变化来"解放") 被证伪。
 
-### 1.6 H\*\* — α_brain OOD 放大器假设 (待验证)
+### 1.6 H\*\* — α_brain OOD 放大器假设 (验证通过, 2026-04-19)
 
 `context = (1 + α_brain)·z_b + Σα·g` 中 α_brain base=0.744,amp=+0.5 sigmoid 会把它推到 1.08,**超过 sigmoid 训练分布 [0, 1]**。早期 OOD 经 49 步 compound 放大 → FVD 灾难。晚期 OOD 只影响 refinement,FVD 可接受。
 
-**预验证方案** (代码已 ready,未跑): `alpha_schedule_E4_clamped.yaml` (同 E4_sigmoid_mid 但 `alpha_max=0.95`):
-- 若 FVD 从 1194 → 700-800 → H\*\* 成立 (OOD 是主因)
-- 若 FVD 仍 ≥ 1000 → H\*\* 弱化 (文献 motion-first 才是主因)
+**E4_sigmoid_mid_clamped 540 结果** (config: amp=+0.5 sigmoid + `alpha_max=0.95`):
+
+| 实验 | FVD ↓ | EPE ↓ | SSIM ↑ | PSNR ↑ | CLIP ↑ |
+|---|---:|---:|---:|---:|---:|
+| v2 static baseline | 619 | 2.94 | 0.302 | 12.04 | 0.747 |
+| E4_sigmoid_mid (amp=+0.5, **无 clamp**) | **1194** | 2.60 | 0.292 | 9.46 | 0.693 |
+| **E4_sigmoid_mid_clamped (同上 + α≤0.95)** | **628** (**−47% vs 无 clamp**) | 2.88 | 0.305 | 12.04 | 0.747 |
+| E4_reverse (amp=−0.5, winner) | 425 | 3.19 | 0.282 | 12.61 | 0.758 |
+
+**结论 — H** 强支持**:
+1. Clamp α_brain 到 0.95 后 FVD 从 1194 → 628,**几乎完全回到 v2 baseline 619**
+2. 说明正向 schedule 的 FVD 灾难 ~90% 由 α_brain OOD (0.744 × 1.5 = 1.08 → 超出 [0,1]) 贡献
+3. **但 clamp 只"去毒",不"增益"**: E4_reverse (425) 仍显著优于 clamped (628),说明 motion-first 反向 schedule 的 -31% FVD 改善是**独立于** OOD 因素的真收益
+
+**对 Path B 设计的启示**:
+- E4_reverse 形状的 prior 天然避免 OOD (amp=−0.5 把 α_brain 推到 0.744 × 0.5 = 0.37,远离饱和)
+- **OOD-avoidance 和 motion-first 方向这两个因子通过 E4_reverse 一次性解决**,Path B 不需要额外 clamp 机制
+- 如果未来 Path B 尝试更激进 amp,需要重新检查 OOD (代码已有 `alpha_max` 参数可复用)
 
 ### 1.7 结论 (D1 决策)
 
