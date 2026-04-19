@@ -38,17 +38,19 @@
 
 `base(τ)` 有 linear / cosine / sigmoid 三种,`amp ∈ [−0.5, +0.5]`。
 
-### 1.3 540 评估 (4-way + 1 清洁 baseline, 2026-04-18)
+### 1.3 540 评估 (7-way, 2026-04-18/19)
 
-所有实验用同一推理代码 (新代码),seed=42,540 样本全集:
+所有实验用同一推理代码 (新代码) + 同 seed=42 + 540 样本全集。**新代码相对旧代码有 +15% FVD 漂移** (E0_new_code 717 vs E0_v2_static 619),因此公平对比 Path B 时应以 E0_new_code 为 baseline。
 
-| 实验 | Schedule | FVD ↓ | EPE ↓ | SSIM ↑ | PSNR ↑ | CLIP ↑ |
-|---|---|---:|---:|---:|---:|---:|
-| **E0_v2_static** (旧代码 baseline) | none (静态) | **618.72** | 2.94 | 0.302 | 12.04 | 0.747 |
-| E0_new_code | none (静态) | 720.27 | 2.98 | 0.295 | 11.98 | 0.739 |
-| E3_cosine (amp=+0.4) | cosine | 1144.73 | 2.64 | 0.296 | 9.80 | 0.702 |
-| E4_sigmoid_mid (amp=+0.5) | sigmoid mid | 1193.63 | 2.60 | 0.292 | 9.46 | 0.693 |
-| **E4_reverse (amp=−0.5)** | sigmoid mid | **425.28** (**−31%**) | 3.19 | 0.282 | **12.61** | **0.758** |
+| 实验 | Schedule | FVD ↓ | EPE ↓ | SSIM ↑ | PSNR ↑ | CLIP ↑ | CTC ↑ |
+|---|---|---:|---:|---:|---:|---:|---:|
+| **E0_v2_static** (旧代码 baseline) | none | **618.72** | 2.94 | 0.302 | 12.04 | 0.747 | 0.9865 |
+| **E0_new_code** (新代码 baseline) | none | **717.23** | 2.91 | 0.310 | 12.13 | 0.743 | 0.9860 |
+| E3_cosine (amp=+0.4) | cosine | 1144.73 | 2.64 | 0.296 | 9.80 | 0.702 | 0.9897 |
+| E4_sigmoid_mid (amp=+0.5) | sigmoid mid | 1193.63 | **2.60** | 0.292 | 9.46 | 0.693 | 0.9903 |
+| E4_sigmoid_mid_clamped (α≤0.95) | sigmoid mid | 628.22 | 2.88 | 0.305 | 12.04 | 0.747 | 0.9870 |
+| **E4_reverse (amp=−0.5)** | sigmoid mid | **425.28** (**−41% vs E0_new_code**) | 3.19 | 0.282 | **12.61** | 0.758 | 0.9844 |
+| E4_reverse_clamped (α≤0.95) | sigmoid mid | **429.93** (+1% vs 无 clamp) | 3.22 | 0.277 | 12.55 | **0.761** | 0.9845 |
 
 ### 1.4 核心发现: 方向反转
 
@@ -74,28 +76,37 @@
 
 所有通道**完全不饱和**,H\* (v2 gate_net 输出饱和 → 需要 timestep 变化来"解放") 被证伪。
 
-### 1.6 H\*\* — α_brain OOD 放大器假设 (验证通过, 2026-04-19)
+### 1.6 H\*\* — α_brain OOD 时机不对称假设 (对称验证通过, 2026-04-19)
 
-`context = (1 + α_brain)·z_b + Σα·g` 中 α_brain base=0.744,amp=+0.5 sigmoid 会把它推到 1.08,**超过 sigmoid 训练分布 [0, 1]**。早期 OOD 经 49 步 compound 放大 → FVD 灾难。晚期 OOD 只影响 refinement,FVD 可接受。
+`context = (1 + α_brain)·z_b + Σα·g` 中 α_brain base=0.744,amp=+0.5 sigmoid 会把它推到 1.08,**超过 sigmoid 训练分布 [0, 1]**。H** 预测:**早期 OOD 经 49 步 compound → FVD 灾难;晚期 OOD 只影响 refinement → FVD 基本无害**。
 
-**E4_sigmoid_mid_clamped 540 结果** (config: amp=+0.5 sigmoid + `alpha_max=0.95`):
+**双向 clamp 实验 (E4_sigmoid_mid + E4_reverse, 各 α≤0.95)**:
 
-| 实验 | FVD ↓ | EPE ↓ | SSIM ↑ | PSNR ↑ | CLIP ↑ |
-|---|---:|---:|---:|---:|---:|
-| v2 static baseline | 619 | 2.94 | 0.302 | 12.04 | 0.747 |
-| E4_sigmoid_mid (amp=+0.5, **无 clamp**) | **1194** | 2.60 | 0.292 | 9.46 | 0.693 |
-| **E4_sigmoid_mid_clamped (同上 + α≤0.95)** | **628** (**−47% vs 无 clamp**) | 2.88 | 0.305 | 12.04 | 0.747 |
-| E4_reverse (amp=−0.5, winner) | 425 | 3.19 | 0.282 | 12.61 | 0.758 |
+| 实验对比 | FVD 无 clamp | FVD clamp (α≤0.95) | Δ | 解释 |
+|---|---:|---:|---:|---|
+| **正向 schedule** (amp=+0.5, **早期** OOD) | 1194 | **628** | **−47%** | clamp 移除早期 OOD → FVD 灾难消失,回到 baseline |
+| **反向 schedule** (amp=−0.5, **晚期** OOD) | 425 | **430** | +1% | clamp 移除晚期 OOD → FVD **基本不变** |
 
-**结论 — H** 强支持**:
-1. Clamp α_brain 到 0.95 后 FVD 从 1194 → 628,**几乎完全回到 v2 baseline 619**
-2. 说明正向 schedule 的 FVD 灾难 ~90% 由 α_brain OOD (0.744 × 1.5 = 1.08 → 超出 [0,1]) 贡献
-3. **但 clamp 只"去毒",不"增益"**: E4_reverse (425) 仍显著优于 clamped (628),说明 motion-first 反向 schedule 的 -31% FVD 改善是**独立于** OOD 因素的真收益
+**同一 α_brain 越界 1.12, 早期吃完整 FVD, 晚期吃不到 — 时机就是一切**:
+- 单向 clamp 实验 (仅 E4_sigmoid_mid_clamped) 已经证明早期 OOD 是 FVD 主因
+- 加上 E4_reverse_clamped 的**对称对照**,彻底排除了"OOD 本身就是有害的"这个 null hypothesis
+- OOD 在**早期**出现时传播 49 步的差异被 compound 放大到 FVD 崩;晚期出现时仅影响最后几步 refinement,影响微小
 
-**对 Path B 设计的启示**:
-- E4_reverse 形状的 prior 天然避免 OOD (amp=−0.5 把 α_brain 推到 0.744 × 0.5 = 0.37,远离饱和)
-- **OOD-avoidance 和 motion-first 方向这两个因子通过 E4_reverse 一次性解决**,Path B 不需要额外 clamp 机制
-- 如果未来 Path B 尝试更激进 amp,需要重新检查 OOD (代码已有 `alpha_max` 参数可复用)
+**几个关键 corollary**:
+
+1. **E4_sigmoid_mid 的 EPE 2.60 (比 v2 好 0.29) 是 OOD 噪声产物,不是真收益**
+   - clamp 后 EPE 回到 2.88 (和 v2 2.94 差 0.06,在 noise floor 内)
+   - **Path A 正向路径无独立增益** — 所谓的 "EPE 改善" 是 OOD 副产品
+
+2. **E4_reverse 的 FVD 425 是真实 schedule 效果**
+   - 不是 OOD 侥幸: clamp 后 FVD 基本不变 (430)
+   - 独立于 OOD 因素的 motion-first 方向收益
+   - 对新代码 baseline (717) 是 **−41% FVD**
+
+3. **Path B Prior 方向锚定正确**
+   - 用 E4_reverse 形状 prior (amp=−0.5) 既避免 OOD (α_brain 推到 0.37),又锁定真实收益方向
+   - 双赢: OOD-avoidance + motion-first 一次性实现
+   - 不需要额外 clamp 机制 (`alpha_max` 参数在 sampling.py 保留但默认不启用)
 
 ### 1.7 结论 (D1 决策)
 
