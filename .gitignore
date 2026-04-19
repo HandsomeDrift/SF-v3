@@ -51,3 +51,12 @@ setup_cinebrain.sh
 check_environment.py
 cogvideo_requirements.txt
 run_all_inference.sh
+
+# One-shot experiment launchers / ad-hoc eval scripts
+# (kept locally for reproducibility but not part of the canonical codebase;
+# reproducible launchers live under tools/)
+run_verify.sh
+run_v3_bugfix_infer.sh
+run_v3_bugfix_train.sh
+run_eval_mini20.sh
+eval_mini20_compare.py
