@@ -1,0 +1,26 @@
+# §6 Exp 1 — Single-step α_brain perturbation override.
+#
+# Merge into cinebrain_sf_v1_model.yaml (baseline, v2 static α) so that
+# sampler picks up perturb_spec. With alpha_brain_step set and delta > 0,
+# the sampler adds +delta to alpha_brain at step i* only; other steps use
+# the sample-adaptive static α from the trained gate network.
+#
+# Usage:
+#   sample_brain_va.py --base \
+#     configs/sf_v1/cinebrain_sf_v1_model.yaml \
+#     configs/sf_v1/exp1_perturb_override.yaml \
+#     configs/sf_v1/infer_stage3_v2.yaml \
+#     --output_dir results/exp1_pilot/step_1 --save_latents
+#
+# To sweep steps, the launcher `tools/run_exp1_pilot.sh` substitutes
+# PERTURB_STEP / PERTURB_DELTA into a copy of this file before launch.
+
+model:
+  sampler_config:
+    params:
+      perturb_spec:
+        alpha_brain_step: PERTURB_STEP    # int | null
+        alpha_brain_delta: PERTURB_DELTA  # float, 0.0 = no-op
+        latent_step: null                 # Exp 4 use
+        latent_eps: 0.0
+        latent_seed: null

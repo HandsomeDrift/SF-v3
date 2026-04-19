@@ -707,7 +707,7 @@ class Image2VideoDDIMSampler(BaseDiffusionSampler):
         return x
 
 class VPSDEDPMPP2MSampler(VideoDDIMSampler):
-    def __init__(self, alpha_schedule=None, path_b=None, **kwargs):
+    def __init__(self, alpha_schedule=None, path_b=None, perturb_spec=None, **kwargs):
         super().__init__(**kwargs)
         # Direction ① path A: timestep-aware multiplicative modulation of learned alphas.
         # None (or type="none") disables, reproducing v2 static behavior.
@@ -721,20 +721,61 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         self.use_path_b = bool(self.path_b.get("enabled", False))
         self.path_b_t_emb_dim = int(self.path_b.get("t_emb_dim", 256))
 
+        # §6 perturbation-analysis hooks for Exp 1 (single-step α perturbation)
+        # and Exp 4 (single-step latent perturbation). perturb_spec is a dict
+        # with optional keys:
+        #   - "alpha_brain_step"  (int | None): step i* to perturb α_brain at
+        #   - "alpha_brain_delta" (float): additive offset on α_brain (default 0.0)
+        #   - "latent_step"       (int | None): step i* after which to perturb x
+        #   - "latent_eps"        (float): stddev of Gaussian noise on x
+        #   - "latent_seed"       (int | None): seed for reproducible η direction
+        # When perturb_spec is None or all fields are None/0, behavior is
+        # bit-identical to the original sampler (verified by T1 unit test).
+        self.perturb_spec = dict(perturb_spec) if perturb_spec is not None else {}
+        self.perturb_alpha_step = self.perturb_spec.get("alpha_brain_step", None)
+        if self.perturb_alpha_step is not None:
+            self.perturb_alpha_step = int(self.perturb_alpha_step)
+        self.perturb_alpha_delta = float(self.perturb_spec.get("alpha_brain_delta", 0.0))
+        self.perturb_latent_step = self.perturb_spec.get("latent_step", None)
+        if self.perturb_latent_step is not None:
+            self.perturb_latent_step = int(self.perturb_latent_step)
+        self.perturb_latent_eps = float(self.perturb_spec.get("latent_eps", 0.0))
+        self.perturb_latent_seed = self.perturb_spec.get("latent_seed", None)
+        if self.perturb_latent_seed is not None:
+            self.perturb_latent_seed = int(self.perturb_latent_seed)
+
+    def _apply_alpha_perturb(self, alphas_t):
+        """Apply single-step α_brain perturbation (Exp 1). Returns modified dict."""
+        if self.perturb_alpha_delta == 0.0:
+            return alphas_t
+        alphas_out = dict(alphas_t)
+        alphas_out["alpha_brain"] = alphas_out["alpha_brain"] + self.perturb_alpha_delta
+        return alphas_out
+
     def _remix_cond_for_step(self, cond, embedder, i, num_sigmas, alpha_cumprod_sqrt=None):
         """Rebuild cond["crossattn"] for step i using per-τ alpha modulation.
 
-        Three branches:
+        Four branches (all gated by embedder / premix existing):
           1. path_b.enabled=True → re-run gate_net(slow_feat, fast_feat, t_emb(tau))
              for a learned α(sample, τ). Requires embedder._last_slow_feat/_last_fast_feat.
           2. alpha_schedule set → Path A legacy schedule modulation (v2 inference winner).
-          3. Otherwise cond is returned unchanged (v2 static behavior).
+          3. perturb_alpha_step == i → static α + Exp-1 perturbation on α_brain.
+          4. Otherwise cond is returned unchanged (v2 static behavior).
+
+        At the perturbation step, the Exp-1 offset is applied on top of whichever
+        α source is active (path B's learned, path A's scheduled, or the static
+        baseline). This lets us probe perturbation sensitivity regardless of
+        which gating mode the underlying checkpoint uses.
         """
         if embedder is None:
             return cond
         premix = getattr(embedder, "_last_premix", None)
         if premix is None:
             return cond
+
+        at_perturb_step = (
+            self.perturb_alpha_step is not None and i == self.perturb_alpha_step
+        )
 
         # ---- Path B: learned α(sample, τ) via gate_net re-run ----
         if self.use_path_b:
@@ -755,6 +796,8 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
                 )
             t_emb = timestep_embedding(tau, dim=self.path_b_t_emb_dim)
             _, alphas_t = gated_fusion(slow_feat, fast_feat, t_emb=t_emb, tau=tau)
+            if at_perturb_step:
+                alphas_t = self._apply_alpha_perturb(alphas_t)
             new_context = embedder.guidance_adapter.mix_context(
                 premix["z_b"], alphas_t, premix["components"]
             )
@@ -763,25 +806,38 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
             return new_cond
 
         # ---- Path A: hand-crafted schedule (legacy) ----
-        if self.alpha_schedule is None or self.alpha_schedule.get("type", "none") in (None, "none"):
+        has_schedule = (
+            self.alpha_schedule is not None
+            and self.alpha_schedule.get("type", "none") not in (None, "none")
+        )
+
+        # Fast path: no path_b, no schedule, no perturbation at this step → static.
+        if not has_schedule and not at_perturb_step:
             return cond
 
-        tau = i / max(num_sigmas - 2, 1)
-        alphas_base = premix["alphas_base"]
-        # H** validation (2026-04-18): optional upper-bound clamp to prevent
-        # modulated alpha from escaping the sigmoid training distribution [0, 1].
-        # When alpha_max is set, alphas_t[k] = min(v * scale, alpha_max). This
-        # tests whether 540-scale FVD collapse under positive-amp schedules is
-        # driven by alpha_brain OOD (base≈0.744, pushed to 1.08 at amp=+0.5).
-        alpha_max = self.alpha_schedule.get("alpha_max", None)
-        alphas_t = {}
-        for k, v in alphas_base.items():
-            is_slow = (k != "alpha_mot")
-            scale = _schedule_value(self.alpha_schedule, tau, slow=is_slow)
-            modulated = v * scale
-            if alpha_max is not None:
-                modulated = modulated.clamp(max=float(alpha_max))
-            alphas_t[k] = modulated
+        if has_schedule:
+            tau = i / max(num_sigmas - 2, 1)
+            alphas_base = premix["alphas_base"]
+            # H** validation (2026-04-18): optional upper-bound clamp to prevent
+            # modulated alpha from escaping the sigmoid training distribution [0, 1].
+            # When alpha_max is set, alphas_t[k] = min(v * scale, alpha_max). This
+            # tests whether 540-scale FVD collapse under positive-amp schedules is
+            # driven by alpha_brain OOD (base≈0.744, pushed to 1.08 at amp=+0.5).
+            alpha_max = self.alpha_schedule.get("alpha_max", None)
+            alphas_t = {}
+            for k, v in alphas_base.items():
+                is_slow = (k != "alpha_mot")
+                scale = _schedule_value(self.alpha_schedule, tau, slow=is_slow)
+                modulated = v * scale
+                if alpha_max is not None:
+                    modulated = modulated.clamp(max=float(alpha_max))
+                alphas_t[k] = modulated
+        else:
+            # No schedule but at perturb step: start from static α_base.
+            alphas_t = {k: v.clone() for k, v in premix["alphas_base"].items()}
+
+        if at_perturb_step:
+            alphas_t = self._apply_alpha_perturb(alphas_t)
 
         new_context = embedder.guidance_adapter.mix_context(
             premix["z_b"], alphas_t, premix["components"]
@@ -789,6 +845,28 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         new_cond = dict(cond)
         new_cond["crossattn"] = new_context.to(cond["crossattn"].dtype)
         return new_cond
+
+    def _apply_latent_perturb(self, x, i):
+        """Apply single-step latent perturbation (Exp 4). Called after sampler_step(i).
+
+        When perturb_latent_step == i and perturb_latent_eps > 0, adds
+        N(0, eps^2) noise to x. If perturb_latent_seed is set, uses a
+        fresh Generator seeded with (seed + i) for reproducibility across
+        runs with identical perturbation target.
+        """
+        if self.perturb_latent_step is None or i != self.perturb_latent_step:
+            return x
+        if self.perturb_latent_eps == 0.0:
+            return x
+        if self.perturb_latent_seed is not None:
+            gen = torch.Generator(device=x.device)
+            gen.manual_seed(int(self.perturb_latent_seed) + int(i))
+            noise = torch.randn(
+                x.shape, generator=gen, device=x.device, dtype=x.dtype,
+            )
+        else:
+            noise = torch.randn_like(x)
+        return x + float(self.perturb_latent_eps) * noise
 
     def get_variables(self, alpha_cumprod_sqrt, next_alpha_cumprod_sqrt, previous_alpha_cumprod_sqrt=None):
         alpha_cumprod = alpha_cumprod_sqrt ** 2
@@ -908,6 +986,9 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
                 scale_emb=scale_emb,
                 ofs=ofs # 1020
             )
+            # §6 Exp 4: single-step latent perturbation applied to x_{i+1}.
+            # No-op when perturb_latent_step is None or perturb_latent_eps == 0.
+            x = self._apply_latent_perturb(x, i)
 
         if self.fixed_frames > 0:
             x = torch.cat([prefix_frames, x[:, self.fixed_frames:]], dim=1)

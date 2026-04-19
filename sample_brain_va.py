@@ -8,6 +8,21 @@ from PIL import Image
 import imageio
 
 import torch
+# §6 perturbation experiments: opt-in CUDA determinism for bit-reproducible
+# baselines (required to measure tiny α perturbation signals above the default
+# GPU-nondeterminism noise floor of ~0.17/element). Path B / other default runs
+# do not set FORCE_DETERMINISM, so behavior is unchanged.
+if os.environ.get("FORCE_DETERMINISM", "0") == "1":
+    torch.backends.cudnn.deterministic = True
+    torch.backends.cudnn.benchmark = False
+    torch.backends.cuda.matmul.allow_tf32 = False
+    torch.backends.cudnn.allow_tf32 = False
+    try:
+        torch.use_deterministic_algorithms(True, warn_only=True)
+    except Exception:
+        pass
+    print("[FORCE_DETERMINISM=1] CUDA/cuDNN deterministic mode enabled.")
+
 import numpy as np
 from einops import rearrange, repeat
 import torchvision.transforms as TT
@@ -224,6 +239,12 @@ def sampling_main(args, model_cls):
                 ).to("cuda")
 
                 samples_z = samples_z.permute(0, 2, 1, 3, 4).contiguous()
+                # §6 perturbation experiments: save pre-VAE latent for bit-identical
+                # comparisons. No-op when --save_latents is not set (Path B etc.).
+                if getattr(args, 'save_latents', False) and mpu.get_model_parallel_rank() == 0:
+                    os.makedirs(args.output_dir, exist_ok=True)
+                    latent_path = os.path.join(args.output_dir, save_name + "_latent.pt")
+                    torch.save(samples_z.detach().cpu(), latent_path)
                 samples_x = model.decode_first_stage(samples_z).to(torch.float32)
                 samples_x = samples_x.permute(0, 2, 1, 3, 4).contiguous()
                 samples = torch.clamp((samples_x + 1.0) / 2.0, min=0.0, max=1.0).cpu()
@@ -246,12 +267,15 @@ if __name__ == "__main__":
                            help='SDEdit strength: 1.0=full denoising, 0.7=skip 30%% early steps')
     py_parser.add_argument('--use_dana', action='store_true', default=False,
                            help='Enable DANA dynamic noise (motion-aware noise mixing)')
+    py_parser.add_argument('--save_latents', action='store_true', default=False,
+                           help='Save pre-VAE latent (samples_z) as .pt alongside mp4 for bit-identical comparisons (§6 perturbation experiments)')
     known, args_list = py_parser.parse_known_args()
 
     args = get_args(args_list)
     args.output_dir = known.output_dir
     args.sdedit_strength = known.sdedit_strength
     args.use_dana = known.use_dana
+    args.save_latents = known.save_latents
     del args.deepspeed_config
     args.model_config.first_stage_config.params.cp_size = 1
     args.model_config.network_config.params.transformer_args.model_parallel_size = 1
