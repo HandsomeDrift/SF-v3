@@ -233,11 +233,50 @@ PASS T1: Path B iter-0 matches v2 bit-identical.
 PASS T2: gate_net responds to t_emb once W_t_emb_cols leaves zero-pad.
 ```
 
-### 2.8 当前状态 & 下一步
+### 2.8 P1 训练完成 (2026-04-19 01:13 → 10:42, 9.5h)
 
-- **Attempt 3 P1 训练**: Probe100 smoke test (gpu2 × 2 DDP, 100 iter) 进行中,之后回 gpu1 × 4 DDP 跑完整 2000 iter
-- **若 gate_net 仍学不动**: 计划加独立 param_group (gate_net lr 1e-5 → 1e-4) + 关 lr_decay
-- **若学得动**: residual 偏离 prior 的方向告诉我们 α 是应该更极端还是更温和
+**配置**: gpu2 × 2 DDP (GPU 3, 5), 2000 iter, lr=1e-5, grad_accum=2, freeze slow/fast branches, unfreeze fusion
+**Ckpt**: 500/1000/1500/2000 全部保存 (`ckpts_5b/sf_v3_pathB_p1-04-19-01-13/`)
+**最终 loss**: total 0.26 / diff_loss 0.14 (正常区间, 无发散)
+
+### 2.9 iter 2000 α(τ) probe (50 样本 × 7 τ 点)
+
+| 通道 | iter 0 (init+prior) | **iter 2000** | 训出的残差 |
+|---|---|---|---|
+| α_key | 0.38 → 0.60 (range +0.22) | 0.38 → 0.60 (+0.22) | **不变** |
+| α_txt | 0.21 → 0.40 (range +0.19) | 0.21 → 0.38 (+0.17) | base 同, range 略缩 |
+| α_mot | 0.54 → 0.32 (range −0.22) | **0.60 → 0.40** (−0.20) | **base ↑ 0.07** |
+| α_brain | 0.60 → 0.79 (range +0.19) | **0.73 → 0.87** (+0.15) | **base ↑ 0.12** |
+
+所有通道 `frac|Δ|>0.05 = 100%`,**E4_reverse 形状完整保留**。
+
+**关键发现**:
+1. **gate_net sample-path 明显在学**: α_mot 整体 ↑ 0.07, α_brain 整体 ↑ 0.12 — 模型要更多 motion + brain 信号
+2. **gate_net τ-path 学到少量负残差**: 4 通道 range 都略缩 (-0.02 ~ -0.04) — gate_net 在软化 prior 的陡峭度
+3. **晚期 α_mot 0.40 比 Path A 的 0.22 强 82%**: 理论上**能修复 Path A 的 EPE trade-off** (Path A EPE 3.19 吃了晚期 α_mot 太弱的亏)
+
+**相对 Path A winner 的重要差异**:
+
+| 通道 | Path A E4_reverse 晚期 α | Path B iter 2000 晚期 α | 含义 |
+|---|---:|---:|---|
+| α_mot | 0.44 × 0.5 = 0.22 | **0.40** (+82%) | Path B 晚期 motion 更强 → 预期 EPE 改善 |
+| α_brain | 0.74 × 1.5 = 1.12 (**OOD!**) | **0.87** (< 1.0) | Path B 无 OOD 问题 |
+| α_key | 0.49 × 1.5 = 0.73 | 0.60 | Path B 略保守 |
+
+Path B **天然避开 OOD** (sigmoid 输出保证 α < 1.0) **且晚期 motion 更强** — 如果 FVD 也保持 Path A 的 425 水平,EPE 应比 Path A 好。
+
+### 2.10 540 推理进行中 (2026-04-19 12:30 启动)
+
+- gpu2 GPU 3 (split0, 270 samples) + GPU 5 (split1, 270 samples)
+- Config: `cinebrain_sf_v3_pathB_model.yaml` + `infer_pathB_p1.yaml`
+- 输出: `results/alpha_540/pathB_p1_iter2000/`
+- ETA 完成: 2026-04-20 08:00-09:00 (~20h)
+
+**预期 540 eval**:
+- FVD: 400-450 (接近或略优 Path A winner 425)
+- EPE: 2.7-3.0 (显著优 E4_reverse 3.19, 因晚期 α_mot 更强)
+- SSIM/CLIP: 0.28-0.30 / 0.74-0.76 (接近 E4_reverse)
+- 对 E0_new_code baseline (717): 若 FVD ≤ 420,则 **−41% FVD**
 
 ### 2.9 Phase II 成功判据
 
