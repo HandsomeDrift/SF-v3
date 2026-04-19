@@ -1,0 +1,7 @@
+# Direction ① path A — E3: cosine schedule, balanced amplitude (expected best baseline).
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: cosine
+        amp: 0.4

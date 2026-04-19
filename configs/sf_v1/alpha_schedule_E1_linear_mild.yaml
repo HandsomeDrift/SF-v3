@@ -1,0 +1,9 @@
+# Direction ① path A — E1: linear schedule, mild amplitude.
+# Slow channels (α_key/α_txt/α_brain) boosted at τ=0 (early, high-noise),
+# Fast channel (α_mot) boosted at τ=1 (late, low-noise).
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: linear
+        amp: 0.2

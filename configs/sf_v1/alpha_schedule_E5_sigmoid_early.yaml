@@ -1,0 +1,9 @@
+# Direction ① path A — E5: sigmoid schedule, earlier Slow→Fast transition (τ=0.3).
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: sigmoid
+        amp: 0.5
+        midpoint: 0.3
+        steepness: 6.0

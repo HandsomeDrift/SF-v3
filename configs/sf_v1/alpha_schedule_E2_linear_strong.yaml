@@ -1,0 +1,7 @@
+# Direction ① path A — E2: linear schedule, strong amplitude.
+model:
+  sampler_config:
+    params:
+      alpha_schedule:
+        type: linear
+        amp: 0.5
