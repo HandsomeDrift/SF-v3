@@ -720,6 +720,12 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         self.path_b = dict(path_b) if path_b is not None else {}
         self.use_path_b = bool(self.path_b.get("enabled", False))
         self.path_b_t_emb_dim = int(self.path_b.get("t_emb_dim", 256))
+        # Clamp ablation (2026-04-22): replace selected channels with pure-prior α
+        # (what gate_net would output with zero learned residual). Purpose is to
+        # decompose which gate_net drift channel contributes which metric (EPE vs FVD).
+        # Empty list = no clamping (production). Valid entries:
+        # ["alpha_key", "alpha_txt", "alpha_mot", "alpha_brain"].
+        self.path_b_clamp_channels = list(self.path_b.get("clamp_channels", []))
 
         # §6 perturbation-analysis hooks for Exp 1 (single-step α perturbation)
         # and Exp 4 (single-step latent perturbation). perturb_spec is a dict
@@ -743,6 +749,36 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         self.perturb_latent_seed = self.perturb_spec.get("latent_seed", None)
         if self.perturb_latent_seed is not None:
             self.perturb_latent_seed = int(self.perturb_latent_seed)
+        self.perturb_crossattn_step = self.perturb_spec.get("crossattn_step", None)
+        if self.perturb_crossattn_step is not None:
+            self.perturb_crossattn_step = int(self.perturb_crossattn_step)
+        self.perturb_crossattn_eps = float(self.perturb_spec.get("crossattn_eps", 0.0))
+        self.perturb_crossattn_seed = self.perturb_spec.get("crossattn_seed", None)
+        if self.perturb_crossattn_seed is not None:
+            self.perturb_crossattn_seed = int(self.perturb_crossattn_seed)
+
+    def _apply_crossattn_perturb(self, cond, i):
+        """Apply single-step Gaussian perturbation to cond[crossattn] at step i (Exp 6).
+
+        Perturbs the full conditioning tensor regardless of which modality
+        (text/brain) populates each token. Used to establish generality of
+        temporal asymmetry beyond the MGA alpha parameterization.
+        """
+        if self.perturb_crossattn_step is None or i != self.perturb_crossattn_step:
+            return cond
+        if self.perturb_crossattn_eps == 0.0:
+            return cond
+        ca = cond.get("crossattn", None)
+        if ca is None:
+            return cond
+        gen = None
+        if self.perturb_crossattn_seed is not None:
+            gen = torch.Generator(device=ca.device)
+            gen.manual_seed(int(self.perturb_crossattn_seed) + int(i))
+        noise = torch.randn(ca.shape, generator=gen, device=ca.device, dtype=ca.dtype)
+        new_cond = dict(cond)
+        new_cond["crossattn"] = ca + float(self.perturb_crossattn_eps) * noise
+        return new_cond
 
     def _apply_alpha_perturb(self, alphas_t):
         """Apply single-step α_brain perturbation (Exp 1). Returns modified dict."""
@@ -796,6 +832,27 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
                 )
             t_emb = timestep_embedding(tau, dim=self.path_b_t_emb_dim)
             _, alphas_t = gated_fusion(slow_feat, fast_feat, t_emb=t_emb, tau=tau)
+            # Clamp ablation: override selected channels with pure-prior α(τ).
+            # α_prior[ch](τ) = sigmoid(prior_amp * sched(τ) * prior_sign[ch])
+            # i.e. what gate_net would output with zero learned residual.
+            if self.path_b_clamp_channels:
+                gf = gated_fusion
+                if getattr(gf, "use_prior_schedule", False):
+                    sched = 1.0 - 2.0 / (
+                        1.0 + torch.exp(-gf.prior_steepness * (tau - gf.prior_midpoint))
+                    )
+                    prior_bias_b4 = (
+                        gf.prior_amp
+                        * sched.view(-1, 1)
+                        * gf.prior_sign.to(sched.dtype).view(1, -1)
+                    )
+                    alpha_prior_b4 = torch.sigmoid(prior_bias_b4)
+                    ch_idx = {"alpha_key": 0, "alpha_txt": 1, "alpha_mot": 2, "alpha_brain": 3}
+                    alphas_t = dict(alphas_t)
+                    for ch in self.path_b_clamp_channels:
+                        if ch in ch_idx:
+                            col = ch_idx[ch]
+                            alphas_t[ch] = alpha_prior_b4[:, col:col+1].to(alphas_t[ch].dtype)
             if at_perturb_step:
                 alphas_t = self._apply_alpha_perturb(alphas_t)
             new_context = embedder.guidance_adapter.mix_context(
@@ -963,6 +1020,7 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
                 cond, embedder, i, num_sigmas,
                 alpha_cumprod_sqrt=alpha_cumprod_sqrt[i],
             )
+            cond_t = self._apply_crossattn_perturb(cond_t, i)
 
             if self.fixed_frames > 0:
                 if self.sdedit:
