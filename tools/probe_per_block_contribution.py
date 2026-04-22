@@ -140,16 +140,16 @@ def _make_noise(shape, device, dtype, seed):
     return torch.randn(shape, generator=g, dtype=torch.float32).to(device=device, dtype=dtype)
 
 
-def _dit_forward(model, x, sigma, c, storage):
+def _dit_forward(model, x, sigma, c, storage, idx):
     """Invoke the denoiser-wrapped DiT once, populating block `storage`.
 
     Uses model.denoiser(network, x, sigma, cond) which is how the sampler
     calls the network — this ensures the cross-attn context path is built
     exactly as in production inference.
     """
-    # denoiser expects: (network, input, sigma, cond)
-    # Sigma is broadcast to match batch dim internally.
-    return model.denoiser(model.model, x, sigma, c)
+    # CogVideoX uses VideoScaling requiring additional_model_inputs[idx].
+    idx_tensor = x.new_ones([x.shape[0]]) * float(idx)
+    return model.denoiser(model.model, x, sigma, c, idx=idx_tensor)
 
 
 def probe_main(args, max_samples, dump_output, heatmap_png,
@@ -240,7 +240,7 @@ def probe_main(args, max_samples, dump_output, heatmap_png,
 
                 try:
                     sigma = sigma_value.to("cuda")
-                    _ = _dit_forward(model, x_noise, sigma, c_use, block_storage)
+                    _ = _dit_forward(model, x_noise, sigma, c_use, block_storage, idx=step_idx+1)
                 finally:
                     for h in block_hooks:
                         h.remove()
