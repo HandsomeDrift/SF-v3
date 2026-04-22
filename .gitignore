@@ -60,3 +60,9 @@ run_v3_bugfix_infer.sh
 run_v3_bugfix_train.sh
 run_eval_mini20.sh
 eval_mini20_compare.py
+
+# Debug workspaces
+tmp_dbg/
+
+# Backup files from local edits
+*.bak_*
