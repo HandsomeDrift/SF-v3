@@ -1,0 +1,7 @@
+# α-clamp ablation: pathB_p1_iter1500 with selected channels overridden by pure-prior α.
+# Usage: --base cinebrain_sf_v3_pathB_model.yaml infer_pathB_p1_iter1500.yaml pathB_clamp_both.yaml
+model:
+  sampler_config:
+    params:
+      path_b:
+        clamp_channels: [alpha_mot, alpha_brain]
