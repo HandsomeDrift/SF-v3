@@ -738,9 +738,22 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
         # When perturb_spec is None or all fields are None/0, behavior is
         # bit-identical to the original sampler (verified by T1 unit test).
         self.perturb_spec = dict(perturb_spec) if perturb_spec is not None else {}
-        self.perturb_alpha_step = self.perturb_spec.get("alpha_brain_step", None)
-        if self.perturb_alpha_step is not None:
-            self.perturb_alpha_step = int(self.perturb_alpha_step)
+        # Exp 3 (interval additivity): accept int | list | {range: [a, b]} forms.
+        # Normalize to a set of step indices stored in self.perturb_alpha_steps.
+        _step_raw = self.perturb_spec.get("alpha_brain_step", None)
+        if _step_raw is None:
+            self.perturb_alpha_steps = None
+        elif isinstance(_step_raw, list) or hasattr(_step_raw, "_content"):
+            self.perturb_alpha_steps = set(int(s) for s in _step_raw)
+        elif isinstance(_step_raw, dict) and "range" in _step_raw:
+            _a, _b = _step_raw["range"]
+            self.perturb_alpha_steps = set(range(int(_a), int(_b) + 1))
+        else:
+            self.perturb_alpha_steps = {int(_step_raw)}
+        # Back-compat attribute for legacy probe scripts expecting an int:
+        self.perturb_alpha_step = (
+            next(iter(self.perturb_alpha_steps)) if self.perturb_alpha_steps and len(self.perturb_alpha_steps) == 1 else None
+        )
         self.perturb_alpha_delta = float(self.perturb_spec.get("alpha_brain_delta", 0.0))
         self.perturb_latent_step = self.perturb_spec.get("latent_step", None)
         if self.perturb_latent_step is not None:
@@ -810,7 +823,7 @@ class VPSDEDPMPP2MSampler(VideoDDIMSampler):
             return cond
 
         at_perturb_step = (
-            self.perturb_alpha_step is not None and i == self.perturb_alpha_step
+            self.perturb_alpha_steps is not None and i in self.perturb_alpha_steps
         )
 
         # ---- Path B: learned α(sample, τ) via gate_net re-run ----
