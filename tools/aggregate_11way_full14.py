@@ -12,6 +12,8 @@ configs = [
     'E4_reverse_clamped',
     'E4_sigmoid_mid',
     'E4_sigmoid_mid_clamped',
+    'pathB_p1_iter0',
+    'pathB_p1_iter500',
     'pathB_p1_iter1000',
     'pathB_p1_iter1500',
     'pathB_p1_iter2000',
@@ -36,7 +38,7 @@ for name in configs:
     inner = d[key] if isinstance(d[key], dict) else d['experiments'][key]
     combined['experiments'][name] = inner
 
-out_path = f'{R}/summary_9way_pathB_full14.json'
+out_path = f'{R}/summary_11way_pathB_full14.json'
 with open(out_path, 'w') as f:
     json.dump(combined, f, indent=2)
 print(f'wrote {out_path} with {len(combined["experiments"])} entries')
