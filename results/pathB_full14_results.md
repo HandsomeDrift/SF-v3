@@ -1,14 +1,14 @@
-# Path B 11-Config × 14-Metric 完整评估结果
+# Path B 13-Config × 14-Metric 完整评估结果
 
 ## 实验环境
-- **服务器**: ts3 集群 gpu5 (8×A800 80GB for inference, 1-2 GPU for eval)
+- **服务器**: ts3 集群 gpu5 (8×A800 80GB for inference, 1-2 GPU for eval); cont500 推理也用了 gpu2 GPU 0+1（与他人 LLaVA 共用）
 - **Backbone**: CogVideoX-5B + CineSync LoRA (r=128)
 - **采样器**: VPSDEDPMPP2MSampler, 51 步, seed=42
 - **测试集**: CineBrain Sub-05, Episode S7+S11 (video 7560-8099, 540 clips)
-- **数据日期**: 2026-04-19 ~ 2026-04-24
+- **数据日期**: 2026-04-19 ~ 2026-04-26（cont500 续训实验在 04-24/26 完成）
 - **评估脚本**: `tools/eval_full14.py`（per-metric try/except + 增量保存）
 - **聚合脚本**: `tools/aggregate_11way_full14.py`
-- **聚合 JSON**: `results/alpha_540/summary_11way_pathB_full14.json`
+- **聚合 JSON**: `results/alpha_540/summary_11way_pathB_full14.json`（仅 P1 11-way；cont500 单独 JSON 见 §关联数据源）
 
 ## 检查点与 Config 索引
 
@@ -25,8 +25,12 @@
 | pathB_p1_iter1000 | Path B Phase I, ckpt @ iter 1000 | 2026-04-23 | `results/alpha_540/pathB_p1_iter1000/` |
 | pathB_p1_iter1500 | Path B Phase I, ckpt @ iter 1500 | 2026-04-22 | `results/alpha_540/pathB_p1_iter1500/` |
 | pathB_p1_iter2000 | Path B Phase I, ckpt @ iter 2000 | 2026-04-20 | `results/alpha_540/pathB_p1_iter2000/` |
+| **cont500_iter300** | cont500 续训 iter 300 (val-loss-best, FVD valley) | 2026-04-25 | `results/alpha_540/pathB_cont500_iter300/` |
+| **cont500_iter500** | cont500 续训终点 iter 500 | 2026-04-26 | `results/alpha_540/pathB_cont500_iter500/` |
 
 Path B 训练: `ckpts_5b/sf_v3_pathB_p1-04-19-01-13/`，2000 iter, 2-DDP on gpu2 GPU 3+5, 9.5h wall, 2026-04-19 01:13→10:42。Prior amp=0.5, Option C init std=0.1。iter 0 对应 `ckpts_5b/sf_v3_pathB_init`（partial_load 输出，v2 ckpt 右 pad 到 Path B 结构）。
+
+cont500 续训: `ckpts_5b/sf_v3_pathB_cont500_lr1e6-04-24-16-06/`，500 iter, lr=1e-6（10× 缩小）, 2-DDP on gpu2 GPU 4+5, 2.1h wall, 2026-04-24 16:06→18:13。从 P1_iter500 出发，假设"lr 太大 → drift"，验证小 lr 能否守 FVD 440。Save_interval=100 (5 ckpt: 100/200/300/400/500)。Loss + freezing 配置同 P1 (TimeNoise off, lambda_sf=0.003)。
 
 ## 主表: 11-Config × 14 指标
 
@@ -43,6 +47,8 @@ Path B 训练: `ckpts_5b/sf_v3_pathB_p1-04-19-01-13/`，2000 iter, 2-DDP on gpu2
 | pathB_p1_iter1000 | 501.05 | 2.972 | 0.2887 | 12.193 | 0.369 | 0.755 | 0.987 | 0.982 | 0.984 | 0.849 | 0.947 | 0.414 | 0.920 | 0.316 |
 | **pathB_p1_iter1500** | 554.73 | **2.830** | 0.2885 | 12.311 | 0.370 | 0.752 | **0.988** | **0.983** | 0.983 | 0.846 | 0.943 | 0.391 | 0.922 | 0.337 |
 | pathB_p1_iter2000 | 517.65 | 3.017 | 0.2855 | 12.190 | 0.372 | 0.752 | 0.987 | 0.981 | 0.985 | 0.845 | 0.941 | 0.396 | 0.929 | 0.328 |
+| cont500_iter300 | 487.05 | **2.920** | 0.2833 | 12.336 | 0.371 | 0.756 | **0.988** | 0.982 | **0.986** | 0.848 | 0.947 | 0.410 | 0.917 | 0.331 |
+| cont500_iter500 | 434.77 | 2.961 | 0.2809 | 12.349 | 0.368 | 0.752 | 0.988 | 0.981 | 0.986 | 0.846 | 0.940 | 0.394 | 0.914 | 0.332 |
 
 ## Delta 表: 每 config 相对 Path A winner (E4_reverse)
 
@@ -58,6 +64,8 @@ Path B 训练: `ckpts_5b/sf_v3_pathB_p1-04-19-01-13/`，2000 iter, 2-DDP on gpu2
 | pathB_iter1000 | +75.8 ✗ | -0.22 ✓ | +0.006 ✓ | -0.42 ✗ | -0.001 ✗ | -0.003 ✗ | +0.003 ✓ | +0.005 ✓ | -0.001 ✗ | -0.003 ✗ | +0.000 ✓ | +0.004 ✓ | -0.009 ✗ | -0.056 ✗ |
 | pathB_iter1500 | +129.4 ✗ | -0.36 ✓ | +0.006 ✓ | -0.30 ✗ | -0.000 ✗ | -0.006 ✗ | +0.004 ✓ | +0.007 ✓ | -0.002 ✗ | -0.006 ✗ | -0.004 ✗ | -0.019 ✗ | -0.006 ✗ | -0.035 ✗ |
 | pathB_iter2000 | +92.4 ✗ | -0.18 ✓ | +0.003 ✓ | -0.42 ✗ | +0.002 ✓ | -0.006 ✗ | +0.002 ✓ | +0.005 ✓ | +0.001 ✓ | -0.008 ✗ | -0.006 ✗ | -0.014 ✗ | +0.000 ✓ | -0.044 ✗ |
+| cont500_iter300 | +61.8 ✗ | -0.27 ✓ | +0.001 ✓ | -0.28 ✗ | +0.001 ✓ | -0.002 ✗ | +0.004 ✓ | +0.005 ✓ | +0.002 ✓ | -0.005 ✗ | -0.000 ✗ | +0.000 ✓ | -0.012 ✗ | -0.041 ✗ |
+| **cont500_iter500** | **+9.5 ✗** | -0.23 ✓ | -0.001 ✗ | -0.27 ✗ | -0.002 ✗ | -0.006 ✗ | +0.004 ✓ | +0.005 ✓ | +0.002 ✓ | -0.007 ✗ | -0.007 ✗ | -0.016 ✗ | -0.015 ✗ | -0.040 ✗ |
 
 ## 主要发现
 
@@ -112,41 +120,92 @@ iter 500 时分化微弱，但 iter 1000+ 分化明显:
 
 14 指标差异全部 ≤ 0.02（FVD +4.6, 其他 ±0.01 内），说明 α_brain 的 0.95 clamp 对 full 540 结果**几乎零影响**——与 mini 实验一致。
 
-## 训练方式的诊断结论
+### Finding 7: cont500 (lr=1e-6 续训) 净效果 ≈ 0，但揭示了真正的瓶颈（NEW, 2026-04-26）
+
+**实验设计**：从 P1_iter500 出发，lr=1e-6（10× 缩小）继续训 500 iter，假设"lr 太大导致 iter 1000 之后 FVD drift"。Save 100/200/300/400/500 五个 ckpt，跑 iter 300（val-loss-best）和 iter 500（终点）的 540 推理 + 14 metric。
+
+**结果（vs P1_iter500 起点）**:
+
+| ckpt | FVD | EPE | Vid-50way | 总评 |
+|---|:---:|:---:|:---:|---|
+| P1_iter500（起点） | 440.29 | 3.013 | **0.377** ⭐ | 当前最强 |
+| cont500_iter300 | 487.05 (+47) | 2.920 (-0.09) | 0.331 (-0.046) | FVD valley，全方位偏向 EPE |
+| **cont500_iter500** | **434.77 (-5)** | 2.961 (-0.05) | 0.332 (-0.045) | FVD 微好但 Vid-50way 显著退 |
+
+**FVD valley 现象**: cont500 训练中 FVD 走 440→487(@300)→435(@500) 的 U 形轨迹。lr 衰减（iter 300 lr=4e-7→iter 500 lr=8e-9）在尾段帮模型 "settle" 回近原点。
+
+**val loss 误导**: val loss 最低出现在 cont500_iter300（0.366），低于 P1 任何 iter（最低 0.396 @ iter 1500）；但此处 FVD 反而最差。**val loss 与 FVD 严重脱钩**。
+
+**α(τ) 不变**: 5 个 cont500 ckpt × 4 channel × 7 τ 点的 α(τ) 测量，所有 Δα < 0.001。说明 gate_net 几乎没变，所有优化都来自 **fusion_layers / output_proj**——它们的微小漂移就足以让 FVD 涨/退 ±50 单位、Vid-50way 退 0.045。
+
+### Finding 8: cont500 ≈ P1_iter500 的不同 Pareto 点（同一曲线上更小步长）
+
+cont500_iter500 vs P1_iter500 整体差异都 ≤ 0.05 量级，**模型仍在原 Pareto 曲线上**——只是因为 lr 小步长缩小，沿曲线走得更慢。500 iter × lr=1e-6 净效果 ≈ 50 iter × lr=1e-5。无质变。
+
+**含义**: 即使 lr 缩 10×，模型仍朝同方向走（为 EPE/CTC 牺牲 Vid-50way）。问题在 **loss formulation**（SF loss 把 fusion_layers 推向帧间一致性 metric），不是 lr。
+
+## 训练方式的诊断结论（更新于 2026-04-26）
 
 用户提出的两个假设:
-1. **"起点不够好"** — **部分成立**：iter 0 FVD 468 比 Path A 的 425 高 43 单位；加法 vs 乘法 prior formulation 有内在 gap
-2. **"训练方式不对"** — **部分成立但更微妙**：前 500 iter 训练**同向改进 FVD+EPE**；500+ 开始 Pareto trade；1000+ 过训练
+1. **"起点不够好"** — **部分成立但不是主因**：iter 0 FVD 468 比 Path A 的 425 高 43 单位（加法 vs 乘法 prior gap）；但 iter 500 已经追回到 440，证明起点 gap 可以训出来
+2. **"训练方式不对"** — **强证据：是 loss formulation 的问题，不是 lr**：
+   - 原 P1 训练：iter 0→500 同向改进 → 500→1000 Pareto trade → 1000→2000 过训练
+   - cont500 (lr=1e-6 续训)：500 iter 净变化 ≈ 50 iter 的 lr=1e-5 训练，模型仍朝同方向走；α(τ) 不变，fusion_layers 漂移
+   - 结论：模型受 loss 驱动（SF loss / 重建 loss / KL）走向"帧间一致性 / EPE / CTC"，**任何 lr 配置都改变不了方向**
 
-**最简单、最有效的 fix = early stopping @ iter 500**，不需要复杂的正则化。iter 500 几乎是 Path A 的无损升级，其余 iter 都在 Pareto 上退让 FVD 换 EPE。
+**最简单的实用 fix = 直接用 P1_iter500 作为论文 ckpt**（不再续训）。要破局需要改 loss formulation，不是改 lr。
+
+**真正能改变 Pareto 方向的实验候选**：
+- 降低 SF loss 权重（lambda_sf 0.003 → 0.0005/0.001）：减小 SF 对 fusion 的拉扯，看 Vid-50way 能否守
+- fusion_layers anchor L2 正则（不只 gate_net）：防止 fusion 在续训中漂移
+- TimeNoise 开启（DESIGN Phase II）：但 cont500 已显示 gate_net 不学，TimeNoise 可能也无效
 
 ## 关联数据源
 
-- **原始 JSON** (11个): `results/alpha_540/summary_{config}_full14.json`
+### P1 baseline (11 configs)
+- **原始 JSON**: `results/alpha_540/summary_{config}_full14.json`
 - **11-way 聚合 JSON**: `results/alpha_540/summary_11way_pathB_full14.json`
-- **α(τ) probe 数据**: `results/pathB/alpha_curve_p1_iter{500,1000,1500}.json` + `alpha_curve_p1_2000_iter2000.json` + `alpha_curve_init_with_prior_v2.json`
+- **α(τ) probe**: `results/pathB/alpha_curve_p1_iter{500,1000,1500}.json` + `alpha_curve_p1_2000_iter2000.json` + `alpha_curve_init_with_prior_v2.json`
 - **训练 log**: `logs/pathB_p1_2000.log`（val loss 轨迹 + SF loss 分解）
 - **推理 log**: `logs/pathB_iter{0,500,1000,1500,2000}_gpu5_gpu{0..7}.log`
 - **Eval log**: `logs/eval_full14_pathB_p1_iter{0,500,1000,1500,2000}.log`
-- **推理 launcher**: `tools/launch_pathB_iter0_500_4way_each.sh` (4+4 并行) + `tools/launch_pathB_iter{500,1000,1500}_8way.sh` (8-way)
-- **Eval launcher**: `tools/run_eval_full14_parallel.sh` (2-chain 兼顾 CPU RAM) + 单 config 直接 `tools/eval_full14.py --result-dir`
+- **推理 launcher**: `tools/launch_pathB_iter0_500_4way_each.sh` + `tools/launch_pathB_iter{500,1000,1500}_8way.sh`
+- **Eval launcher**: `tools/run_eval_full14_parallel.sh` + `tools/eval_full14.py --result-dir`
 
-## 后续实验建议
+### cont500 续训实验 (NEW, 2026-04-26)
+- **训练 ckpt（5 个）**: `ckpts_5b/sf_v3_pathB_cont500_lr1e6-04-24-16-06/{100,200,300,400,500}/mp_rank_00_model_states.pt`
+- **训练 config**: `configs/sf_v1/sf_v3_pathB_cont500_lr1e6_train.yaml`（lr=1e-6, train_iters=500, save_interval=100, mode=finetune）
+- **训练 log**: `logs/pathB_cont500_lr1e6.log`
+- **起点 wrapper dir**: `ckpts_5b/sf_v3_pathB_cont500_init/`（latest=500，hardlink 到 P1_iter500）
+- **推理 wrapper dirs**: `ckpts_5b/sf_v3_pathB_cont500_lr1e6_iter{300,500}/`
+- **推理 config**: `configs/sf_v1/infer_pathB_cont500_iter{300,500}.yaml`
+- **推理 launcher**: `tools/launch_cont500_iter300_8way_yield.sh`（gpu5 8-way + courtesy yield watchdog）+ `tools/launch_cont500_iter500_2way_yield_gpu2.sh`（gpu2 GPU 0+1，yield 范围限定 GPU 0/1；后改为不挂 watchdog 直接共用 LLaVA）
+- **推理 mp4**: `results/alpha_540/pathB_cont500_iter{300,500}/*.mp4`
+- **Eval JSON**: `results/alpha_540/summary_cont500_iter{300,500}_full14.json`
+- **Eval log**: `logs/eval_cont500_iter{300,500}.log`
+- **α(τ) probe（5 ckpts）**: `results/pathB/alpha_curve_cont500_iter{100,200,300,400,500}.json`
+- **α probe launcher**: `tools/run_pathB_probe_cont500.sh`（单 GPU 串行 5 ckpts，~17 min）
 
-### 高优先级（基于本次发现）
+## 后续实验建议（2026-04-26 更新）
 
-1. **论文 Table 2 更新为 iter 500 主行**: 之前的 iter 1000 作为 "FVD-best"，现在 iter 500 用 "near-Path-A balanced" 故事更强
-2. **iter 500 作为 Path B 的"官方"号**: 在所有后续实验中（比较 / 跨 subject / P2 设计基线）用 iter 500 ckpt 而非 iter 1500/2000
+### 已验证的 negative results — 不再尝试
 
-### 中优先级（探索训练改进）
+- ❌ **小 lr 续训** (cont500, lr=1e-6, 500 iter): 已做。净效果 ≈ 0，模型仍沿同 Pareto 曲线走小步。问题是 loss formulation，不是 lr。
 
-3. **小 lr 继续训 iter 500 之后**: 如果 lr=1e-5 在 iter 1000 开始过训练，试 lr=1e-6 从 iter 500 继续训 500 iter → 看能否保 FVD 不变而 EPE 继续降
-4. **早停 + Prior-anchor L2 正则重训**: 从 iter 0 起，加 `λ·||gate_net_output||²` 到 loss，λ 扫 [1e-4, 1e-3, 1e-2]，看能否把 iter 500 的 Pareto 点再推进
-5. **Path B formulation 对齐 Path A**: 换成乘法 α × schedule formulation（不用加法 logit prior），看能否把 iter 0 FVD 从 468 拉回 ~425 → 直接吃掉 Path A 的全部 FVD 增益
+### 高优先级（基于 cont500 发现 + 之前判断）
+
+1. **论文 Table 2 主行 = P1_iter500**（不变，cont500 确认仍是最强）
+2. **降低 SF loss 权重重训**：`lambda_sf` 0.003 → 0.0005 / 0.001 / 0.002 三档；从 iter 0 起 2000 iter；目标 — 看 Vid-50way 是否守、FVD 是否守
+3. **fusion_layers anchor L2 正则重训**：在 loss 上加 `λ·||fusion_state - fusion_initial||²`（不只 gate_net 而是整个 gated_fusion 模块），λ 扫 1e-4/1e-3/1e-2；阻止 cont500 中观察到的 fusion 漂移
+
+### 中优先级（仍未验证）
+
+4. **Path B formulation 对齐 Path A**: 换成乘法 α × schedule formulation；如果 SF loss 重权 + anchor L2 都救不了 Vid-50way，再考虑这条
+5. **TimeNoise 开启**（DESIGN Phase II）: cont500 已显示 gate_net 在小 lr 下不学；TimeNoise 是否能让 gate_net 学起来仍是未知
 
 ### 低优先级（之前 backlog）
 
-6. **α-clamp full 540 消融** (4 configs × 5h): mini-68 代码验证 OK 但噪声不够，full 能给 per-channel 归因
+6. **α-clamp full 540 消融** (4 configs × 5h)
 7. **跨 subject Path B 测试**: 当前只在 Sub-05
 8. **Figure 2 绘图**: α(τ) 轨迹 + FVD-EPE 散点 + 高/低 motion 样本 α_mot(τ) 对比
-9. **Appendix H.4 训练 loss trajectory**: 论文引用的 SF_total / diff_loss / val_loss 详细图
+9. **Appendix H.4 训练 loss trajectory**: 论文引用的 SF_total / diff_loss / val_loss 详细图（cont500 数据可加进来作对比）
