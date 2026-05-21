@@ -3,8 +3,8 @@ import os, sys, json, glob, subprocess, tempfile, torch
 import numpy as np
 from tqdm import tqdm
 
-AUDIO_DIR = "/public/home/maoyaoxin/xxt/datasets/audio_all"
-OUTPUT_PATH = "/public/home/maoyaoxin/xxt/datasets/audio_transcripts.json"
+AUDIO_DIR = "/public/home/maoyaoxin/zhangt/xxt/datasets/audio_all"
+OUTPUT_PATH = "/public/home/maoyaoxin/zhangt/xxt/datasets/audio_transcripts.json"
 MODEL_NAME = "openai/whisper-large-v3"
 SAMPLE_RATE = 16000
 BATCH_SIZE = 8

@@ -9,7 +9,7 @@
 
 set -eo pipefail
 
-cd /public/home/maoyaoxin/xxt/SF-v3
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v3
 
 N_SAMPLES=${N_SAMPLES:-5}
 PERTURB_DELTA=${PERTURB_DELTA:-0.3}
@@ -18,12 +18,12 @@ PORT_BASE=${PORT_BASE:-29920}
 OUTPUT_BASE=${OUTPUT_BASE:-results/exp1_pilot_n${N_SAMPLES}}
 STEPS=(1 7 13 20 27 34 41 48)
 
-DATASET_JSON=/public/home/maoyaoxin/xxt/datasets/exp1_pilot_${N_SAMPLES}samples.json
+DATASET_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/exp1_pilot_${N_SAMPLES}samples.json
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 
 export CUDA_HOME=/usr/local/cuda-12.4
 export CUDA_VISIBLE_DEVICES=${GPU}
-export PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3
+export PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 export FORCE_DETERMINISM=1
 export CUBLAS_WORKSPACE_CONFIG=:4096:8
 
@@ -31,7 +31,7 @@ if [ ! -f "${DATASET_JSON}" ]; then
   echo "Generating ${N_SAMPLES}-sample dataset JSON..."
   ${PY} <<EOF
 import json, random
-src = json.load(open("/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json"))
+src = json.load(open("/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json"))
 random.seed(42)
 subset = random.sample(src, k=${N_SAMPLES})
 json.dump(subset, open("${DATASET_JSON}", "w"))

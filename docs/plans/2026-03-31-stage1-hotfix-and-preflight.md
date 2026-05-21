@@ -551,7 +551,7 @@ if __name__ == "__main__":
 **Step 2: 运行验证**
 
 ```bash
-cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain
 CUDA_VISIBLE_DEVICES=0 torchrun --nproc_per_node=1 tools/preflight_check.py \
     --base configs/sf_v1/cinebrain_sf_v1_model.yaml configs/sf_v1/sf_v1_train_stage1.yaml
 ```

@@ -9,6 +9,6 @@ export NCCL_TIMEOUT=3600
 # Activate conda env
 source /public/home/maoyaoxin/anaconda3/bin/activate cinebrain
 
-cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain
 
 torchrun --standalone --nproc_per_node=8 train_video_fmri.py     --base configs/sf_v1/cinebrain_sf_v1_model.yaml configs/sf_v1/sf_v1_distill_1b_full.yaml     --seed 42

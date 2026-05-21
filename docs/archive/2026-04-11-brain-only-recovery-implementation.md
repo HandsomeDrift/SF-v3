@@ -25,7 +25,7 @@
 
 Run:
 ```bash
-ssh ts3 "cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
+ssh ts3 "cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
 ```
 
 Expected:
@@ -112,7 +112,7 @@ Expected:
 
 Run:
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && CUDA_VISIBLE_DEVICES=4 /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/smoke_test_stage2_recovery.py --num-steps 5'"
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && CUDA_VISIBLE_DEVICES=4 /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/smoke_test_stage2_recovery.py --num-steps 5'"
 ```
 
 Expected:
@@ -149,7 +149,7 @@ Expected:
 
 Run:
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && NGPU=1 TRAIN_ITERS=500 EVAL_INTERVAL=100 SAVE_INTERVAL=100 bash run_stage2_recovery.sh'"
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && NGPU=1 TRAIN_ITERS=500 EVAL_INTERVAL=100 SAVE_INTERVAL=100 bash run_stage2_recovery.sh'"
 ```
 
 **Step 2: Evaluate**

@@ -23,7 +23,7 @@
 Run this command and confirm it fails with the duplicated path:
 
 ```bash
-ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_VISIBLE_DEVICES=0 MASTER_ADDR=127.0.0.1 MASTER_PORT=29696 RANK=0 WORLD_SIZE=1 LOCAL_RANK=0 \
   /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tmp_diag_single_forward.py'"
 ```
@@ -78,7 +78,7 @@ load_iteration: 1000
 Run:
 
 ```bash
-ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_VISIBLE_DEVICES=0 MASTER_ADDR=127.0.0.1 MASTER_PORT=29697 RANK=0 WORLD_SIZE=1 LOCAL_RANK=0 \
   /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tmp_diag_single_forward.py \
   --load-iteration 1000'"
@@ -139,7 +139,7 @@ The script should:
 Example command:
 
 ```bash
-ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0,2,3 \
   /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/torchrun \
   --standalone --nproc_per_node=3 tools/debug_stage3_train_step.py \
@@ -220,7 +220,7 @@ git -C /home/drift/ts3/SF-v1/CineBrain commit -m "fix: unblock stage3 first trai
 
 **Files:**
 - Modify: `/home/drift/ts3/SF-v1/CineBrain/configs/sf_v1/sf_v1_stage3_joint_focal_conservative.yaml`
-- Log: `/public/home/maoyaoxin/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log`
+- Log: `/public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log`
 
 **Step 1: Keep the short-run config conservative**
 
@@ -240,7 +240,7 @@ load_iteration: 1000
 Example:
 
 ```bash
-ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0,2,3 \
   nohup /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/torchrun \
   --standalone --nproc_per_node=3 train_video_fmri.py \
@@ -253,7 +253,7 @@ ssh ts3 "ssh gpu3 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
 Run:
 
 ```bash
-ssh ts3 "ssh gpu3 'grep -E \"iteration|total loss|L_router|lambda_router\" /public/home/maoyaoxin/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log | tail -20'"
+ssh ts3 "ssh gpu3 'grep -E \"iteration|total loss|L_router|lambda_router\" /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log | tail -20'"
 ```
 
 Expected: at least one real training iteration / loss line beyond the startup argument dump.
@@ -271,7 +271,7 @@ git -C /home/drift/ts3/SF-v1/CineBrain commit -m "fix: restore stage3 conservati
 
 **Files:**
 - Modify if needed: `/home/drift/fitten/SF-v1/HANDOFF.md`
-- Verify: `/public/home/maoyaoxin/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log`
+- Verify: `/public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log`
 
 **Step 1: Re-check gpu2 availability before using it**
 
@@ -293,7 +293,7 @@ Check both:
 
 ```bash
 ssh ts3 "ssh gpu2 'pgrep -af \"torchrun|train_video_fmri.py\"'"
-ssh ts3 "ssh gpu2 'tail -100 /public/home/maoyaoxin/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log'"
+ssh ts3 "ssh gpu2 'tail -100 /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log'"
 ```
 
 Expected:

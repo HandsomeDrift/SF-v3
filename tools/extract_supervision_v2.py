@@ -12,26 +12,26 @@ Targets extracted:
 Usage:
     # Phase 1: SigLIP targets (keyframe + text embeddings)
     python tools/extract_supervision_v2.py --phase siglip \
-        --dataset_root /public/home/maoyaoxin/xxt/datasets \
-        --output_dir /public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1 \
+        --dataset_root /public/home/maoyaoxin/zhangt/xxt/datasets \
+        --output_dir /public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1 \
         --device cuda
 
     # Phase 2: VAE targets (keyframe latent + structure latent)
     python tools/extract_supervision_v2.py --phase vae \
-        --dataset_root /public/home/maoyaoxin/xxt/datasets \
-        --output_dir /public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1 \
+        --dataset_root /public/home/maoyaoxin/zhangt/xxt/datasets \
+        --output_dir /public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1 \
         --device cuda
 
     # Phase 3: RAFT optical flow targets
     python tools/extract_supervision_v2.py --phase raft \
-        --dataset_root /public/home/maoyaoxin/xxt/datasets \
-        --output_dir /public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1 \
+        --dataset_root /public/home/maoyaoxin/zhangt/xxt/datasets \
+        --output_dir /public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1 \
         --device cuda
 
     # All phases at once
     python tools/extract_supervision_v2.py --phase all \
-        --dataset_root /public/home/maoyaoxin/xxt/datasets \
-        --output_dir /public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1 \
+        --dataset_root /public/home/maoyaoxin/zhangt/xxt/datasets \
+        --output_dir /public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1 \
         --device cuda
 
 Output structure:

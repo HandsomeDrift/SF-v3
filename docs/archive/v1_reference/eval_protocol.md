@@ -20,7 +20,7 @@ configs/sf_v1/_pipeline_tmp/model_phase1_eval.yaml
 
 ### 1. Mini50 评估 (快速迭代)
 ```bash
-cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain
 
 # 使用 1 GPU
 CUDA_VISIBLE_DEVICES=0 \

@@ -40,7 +40,7 @@ def parse_args():
     ap.add_argument("--gpu", type=int, default=0)
     ap.add_argument("--port_base", type=int, default=29950)
     ap.add_argument("--dataset_json", type=str,
-                    default="/public/home/maoyaoxin/xxt/datasets/exp1_unit_1sample.json")
+                    default="/public/home/maoyaoxin/zhangt/xxt/datasets/exp1_unit_1sample.json")
     ap.add_argument("--skip_baseline", action="store_true",
                     help="if baseline already run, skip re-running it")
     return ap.parse_args()
@@ -84,7 +84,7 @@ def run_inference(output_dir, override_path, port, gpu, dataset_json):
     env = os.environ.copy()
     env["CUDA_HOME"] = "/usr/local/cuda-12.4"
     env["CUDA_VISIBLE_DEVICES"] = str(gpu)
-    env["PYTHONPATH"] = "/public/home/maoyaoxin/xxt/SF-v3"
+    env["PYTHONPATH"] = "/public/home/maoyaoxin/zhangt/xxt/SF-v3"
 
     log_path = output_dir + ".log"
     print(f"[Run] port={port}, gpu={gpu}, override={override_path}")

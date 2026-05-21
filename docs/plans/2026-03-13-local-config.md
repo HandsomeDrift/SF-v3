@@ -277,14 +277,14 @@ git commit -m "feat: use local_config for paths in standalone scripts"
 
 **Step 1: Create ts3's `local_config.yaml`**
 
-On ts3 at `/public/home/maoyaoxin/xxt/CineBrain/local_config.yaml`:
+On ts3 at `/public/home/maoyaoxin/zhangt/xxt/CineBrain/local_config.yaml`:
 ```yaml
 paths:
-  transformer: /public/home/maoyaoxin/xxt/CogVideoX-5b-sat/transformer
-  vae: /public/home/maoyaoxin/xxt/CogVideoX-5b-sat/vae/3d-vae.pt
-  siglip2: /public/home/maoyaoxin/xxt/models/google/siglip2-so400m-patch14-384
-  video_dir: /public/home/maoyaoxin/xxt/datasets/clips
-  dataset_root: /public/home/maoyaoxin/xxt/datasets
+  transformer: /public/home/maoyaoxin/zhangt/xxt/CogVideoX-5b-sat/transformer
+  vae: /public/home/maoyaoxin/zhangt/xxt/CogVideoX-5b-sat/vae/3d-vae.pt
+  siglip2: /public/home/maoyaoxin/zhangt/xxt/models/google/siglip2-so400m-patch14-384
+  video_dir: /public/home/maoyaoxin/zhangt/xxt/datasets/clips
+  dataset_root: /public/home/maoyaoxin/zhangt/xxt/datasets
 ```
 
 **Step 2: Sync code to ts3**

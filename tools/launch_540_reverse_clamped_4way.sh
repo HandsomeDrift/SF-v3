@@ -7,7 +7,7 @@
 # Wall clock: 540 / 4 × 4.5 min ≈ 10.1h.
 
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v1_model.yaml
 V2_CKPT=configs/sf_v1/infer_stage3_v2.yaml
@@ -24,7 +24,7 @@ for gpu in 0 1 2 3; do
     split=${gpu}
     log=logs/alpha_540_${NAME}_gpu1_gpu${gpu}.log
     port=$((29900 + gpu))
-    jsonpath=/public/home/maoyaoxin/xxt/datasets/full540_4split${split}.json
+    jsonpath=/public/home/maoyaoxin/zhangt/xxt/datasets/full540_4split${split}.json
 
     CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} \
       nohup ${PY} -m torch.distributed.run \

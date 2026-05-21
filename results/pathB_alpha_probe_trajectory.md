@@ -6,7 +6,7 @@
 ## 实验设置
 - **ckpts**: `ckpts_5b/sf_v3_pathB_p1-04-19-01-13/{500,1000,1500,2000}/` + iter 0 (partial_load 起点，带 E4_reverse prior 的 pathB_init)
 - **Probe 脚本**: `tools/probe_pathB_alpha_curve.py`
-- **样本数**: 50 held-out (`/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json` 前 50)
+- **样本数**: 50 held-out (`/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json` 前 50)
 - **τ 网格**: [0.0, 0.1, 0.3, 0.5, 0.7, 0.9, 1.0] (7 点)
 - **日期**: 2026-04-22
 - **Output**:

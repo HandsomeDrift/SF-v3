@@ -9,9 +9,9 @@ Runs a minimal forward + backward pass to verify:
 5. Peak GPU memory
 
 Usage (single GPU, no distributed):
-    cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain
+    cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain
     CUDA_VISIBLE_DEVICES=0 python tools/smoke_test_stage1.py \
-        --dataset_json /public/home/maoyaoxin/xxt/datasets/sub-0005_train_va.json \
+        --dataset_json /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_train_va.json \
         --num_samples 4 \
         --num_steps 3
 """

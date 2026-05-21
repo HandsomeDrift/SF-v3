@@ -3,9 +3,9 @@
 # 2 × ~41 = 82 GB peak, safe on 251 GB node. Wall clock ~100 min.
 # Important configs first in each chain so partial crash preserves key data.
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
-GT_JSON=/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json
+GT_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json
 R=${PROJ}/results/alpha_540
 cd ${PROJ}
 export CUDA_HOME=/public/home/maoyaoxin/anaconda3/envs/cinebrain

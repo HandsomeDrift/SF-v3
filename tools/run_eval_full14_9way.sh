@@ -3,10 +3,10 @@
 # Single GPU, sequential, ~15 min × 9 = ~2-2.5h total.
 set -euo pipefail
 
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 EVAL_GPU=${EVAL_GPU:-0}
-GT_JSON=/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json
+GT_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json
 RESULTS=${PROJ}/results/alpha_540
 OUT=${RESULTS}/summary_9way_pathB_full14.json
 cd ${PROJ}

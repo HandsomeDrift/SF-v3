@@ -24,7 +24,7 @@
 
 Run:
 ```bash
-ssh ts3 "cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
+ssh ts3 "cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
 ```
 
 Expected:
@@ -104,7 +104,7 @@ Expected:
 
 Run:
 ```bash
-ssh ts3 "cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
+ssh ts3 "cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/test_brain_only_recovery.py"
 ```
 
 Expected:
@@ -114,7 +114,7 @@ Expected:
 
 Run:
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && CUDA_VISIBLE_DEVICES=4 /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/smoke_test_stage2_recovery.py --ckpt <healthy-stage1-ckpt> --dataset-json <train-json> --model-config configs/sf_v1/cinebrain_sf_v1_model.yaml --num-steps 5 --full-reset'"
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && CUDA_VISIBLE_DEVICES=4 /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/smoke_test_stage2_recovery.py --ckpt <healthy-stage1-ckpt> --dataset-json <train-json> --model-config configs/sf_v1/cinebrain_sf_v1_model.yaml --num-steps 5 --full-reset'"
 ```
 
 Expected:

@@ -11,7 +11,7 @@
 
 set -eo pipefail
 
-cd /public/home/maoyaoxin/xxt/SF-v3
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v3
 
 N_SAMPLES=${N_SAMPLES:-20}
 EPS=${EPS:-0.01}          # from pilot
@@ -21,13 +21,13 @@ PORT_BASE=${PORT_BASE:-29930}
 OUTPUT_BASE=${OUTPUT_BASE:-results/exp4_amplification}
 STEPS=(1 7 13 20 27 34 41 48)
 
-DATASET_JSON=/public/home/maoyaoxin/xxt/datasets/exp4_${N_SAMPLES}samples.json
+DATASET_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/exp4_${N_SAMPLES}samples.json
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 
 if [ ! -f "${DATASET_JSON}" ]; then
   ${PY} <<EOF
 import json, random
-src = json.load(open("/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json"))
+src = json.load(open("/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json"))
 random.seed(${SEED_BASE})
 subset = random.sample(src, k=${N_SAMPLES})
 json.dump(subset, open("${DATASET_JSON}", "w"))
@@ -41,7 +41,7 @@ mkdir -p ${OUTPUT_BASE}
 BASELINE_DIR=${OUTPUT_BASE}/baseline
 if [ ! -f "${BASELINE_DIR}/done.flag" ]; then
   mkdir -p ${BASELINE_DIR}
-  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0 PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3 \
+  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0 PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3 \
     nohup ${PY} -m torch.distributed.run --standalone --nproc_per_node=1 --master_port=${PORT_BASE} \
     sample_brain_va.py --base \
       configs/sf_v1/cinebrain_sf_v1_model.yaml \
@@ -85,7 +85,7 @@ for idx in "${!STEPS[@]}"; do
     gpu=$((total_idx % 2))
     PORT=$((PORT + 1))
 
-    CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3 \
+    CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3 \
       nohup ${PY} -m torch.distributed.run --standalone --nproc_per_node=1 --master_port=${PORT} \
       sample_brain_va.py --base \
         configs/sf_v1/cinebrain_sf_v1_model.yaml \

@@ -160,7 +160,7 @@ load: ckpts_5b/sf_v1_stage3_full_recovery_resume_v3-04-14-19-18/1000
 ssh ts3 "ssh gpu2 'nvidia-smi'"
 
 # 2. 启动 mini500 快速验证（300 iter）
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 \
   CUDA_VISIBLE_DEVICES=0,1,2,3 \
   nohup /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python \
@@ -169,19 +169,19 @@ ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
   --seed 42 > logs/focal_conservative_test.log 2>&1 &'"
 
 # 3. 监控日志
-ssh ts3 "tail -f /public/home/maoyaoxin/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log"
+ssh ts3 "tail -f /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/logs/focal_conservative_test.log"
 ```
 
 ### 5.2 评估检查点
 
 ```bash
 # 每 100 iter 评估一次
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_VISIBLE_DEVICES=4 \
   /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python \
   tools/evaluate_p1.py \
   --ckpt ckpts_5b/sf_v1_stage3_joint_focal_conservative-XX-XX-XX-XX/100 \
-  --data_json /public/home/maoyaoxin/xxt/datasets/sub-0005_train_va_mini50.json \
+  --data_json /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_train_va_mini50.json \
   --output eval_results/focal_conservative_iter100.json'"
 ```
 

@@ -16,7 +16,7 @@ Usage (single GPU):
         --base configs/sf_v1/cinebrain_sf_v3_pathB_model.yaml \\
                configs/sf_v1/infer_stage3_v2.yaml \\
         --ckpt_path ckpts_5b/sf_v3_pathB_p1-<stamp>/<step> \\
-        --jsonpath /public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json \\
+        --jsonpath /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json \\
         --max_samples 50 \\
         --dump_output results/pathB/alpha_curve_step500.json \\
         --seed 42
@@ -236,7 +236,7 @@ if __name__ == "__main__":
     py_parser.add_argument("--dump_output", type=str,
                            default="results/pathB/alpha_curve_probe.json")
     py_parser.add_argument("--jsonpath", type=str,
-                           default="/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json")
+                           default="/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json")
     py_parser.add_argument("--tau_grid", type=str,
                            default="0.0,0.1,0.3,0.5,0.7,0.9,1.0")
     known, args_list = py_parser.parse_known_args()

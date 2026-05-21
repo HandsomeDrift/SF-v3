@@ -5,7 +5,7 @@
 # Wall clock: 540 / 8 * 4.5 min ~= 5.1h (~8.6 min/sample with FORCE_DETERMINISM off).
 
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v3_pathB_model.yaml
 INFER=configs/sf_v1/infer_pathB_p1_iter1000.yaml
@@ -25,7 +25,7 @@ for gpu in 0 1 2 3 4 5 6 7; do
     split=${gpu}
     log=logs/pathB_iter1000_gpu5_gpu${gpu}.log
     port=$((29820 + gpu))
-    jsonpath=/public/home/maoyaoxin/xxt/datasets/full540_8split${split}.json
+    jsonpath=/public/home/maoyaoxin/zhangt/xxt/datasets/full540_8split${split}.json
 
     CUDA_VISIBLE_DEVICES=${gpu} \
       nohup ${PY} -m torch.distributed.run \

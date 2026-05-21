@@ -16,10 +16,10 @@
 
 set -euo pipefail
 
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 EVAL_GPU=${EVAL_GPU:-0}
-GT_JSON=/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json
+GT_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json
 RESULTS=${PROJ}/results/alpha_540
 PATHB_DIR=${RESULTS}/pathB_p1_iter2000
 PATHB_SUMMARY=${RESULTS}/summary_pathB_p1_iter2000.json

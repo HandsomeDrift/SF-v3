@@ -10,10 +10,10 @@
 # GPU 4/5 on gpu2 are root's vllm (do not touch).
 #
 # Usage (run from ts3 login node):
-#   bash /public/home/maoyaoxin/xxt/SF-v3/tools/launch_540_3way.sh
+#   bash /public/home/maoyaoxin/zhangt/xxt/SF-v3/tools/launch_540_3way.sh
 
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v1_model.yaml
 V2_CKPT=configs/sf_v1/infer_stage3_v2.yaml
@@ -30,7 +30,7 @@ launch_on () {
     local outdir="results/alpha_540/${name}"
     local log="logs/alpha_540_${name}_${host}_gpu${gpu}.log"
     local port=$((29900 + gpu))
-    local jsonpath="/public/home/maoyaoxin/xxt/datasets/full540_split${split}.json"
+    local jsonpath="/public/home/maoyaoxin/zhangt/xxt/datasets/full540_split${split}.json"
 
     # Trailing '&' backgrounds the ssh call itself so all 9 launches fire in parallel.
     ssh "$host" "cd $PROJ && CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} \

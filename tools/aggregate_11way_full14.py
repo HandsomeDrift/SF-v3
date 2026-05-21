@@ -4,7 +4,7 @@ markdown table + combined summary JSON."""
 import json
 import os
 
-R = '/public/home/maoyaoxin/xxt/SF-v3/results/alpha_540'
+R = '/public/home/maoyaoxin/zhangt/xxt/SF-v3/results/alpha_540'
 configs = [
     'E0_new_code',
     'E3_cosine',

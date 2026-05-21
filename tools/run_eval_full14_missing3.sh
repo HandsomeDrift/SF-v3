@@ -3,9 +3,9 @@
 # Designed to run on a fresh node with >200 GB RAM free (gpu7 verified).
 # Runs 3 configs in parallel on 3 GPUs, ~20 min wall clock.
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
-GT_JSON=/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json
+GT_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json
 R=${PROJ}/results/alpha_540
 cd ${PROJ}
 export CUDA_HOME=/public/home/maoyaoxin/anaconda3/envs/cinebrain

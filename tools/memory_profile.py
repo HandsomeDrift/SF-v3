@@ -7,7 +7,7 @@ Config C: Full model (SF branches + CogVideoX-5B DiT)
 
 Usage:
     CUDA_VISIBLE_DEVICES=0 python tools/memory_profile.py \
-        --dataset_json /public/home/maoyaoxin/xxt/datasets/sub-0005_train_va.json \
+        --dataset_json /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_train_va.json \
         --batch_size 1
 """
 import argparse

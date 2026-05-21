@@ -3,7 +3,7 @@ Verify supervision cache completeness, shapes, and report storage stats.
 
 Usage:
     python tools/verify_supervision_cache.py \
-        --cache_dir /public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1 \
+        --cache_dir /public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1 \
         --total_clips 8100
 """
 import argparse

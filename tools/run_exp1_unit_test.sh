@@ -12,16 +12,16 @@
 
 set -eo pipefail
 
-cd /public/home/maoyaoxin/xxt/SF-v3
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v3
 
-DATASET_JSON=/public/home/maoyaoxin/xxt/datasets/exp1_unit_1sample.json
+DATASET_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/exp1_unit_1sample.json
 BASE_DIR=results/exp1_unit_test
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 GPU=${GPU:-0}
 
 export CUDA_HOME=/usr/local/cuda-12.4
 export CUDA_VISIBLE_DEVICES=${GPU}
-export PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3
+export PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 
 # Force CUDA determinism for bit-reproducible baseline (required for T1 passing).
 # Without this, matmul/cuDNN non-det creates ~0.17/element noise floor across runs,

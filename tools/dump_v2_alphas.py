@@ -8,7 +8,7 @@ Usage (single GPU, no sampler / decoder — only conditioner forward):
         tools/dump_v2_alphas.py \\
         --base configs/sf_v1/cinebrain_sf_v1_model.yaml configs/sf_v1/infer_stage3_v2.yaml \\
         --seed 42 \\
-        --jsonpath /public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json \\
+        --jsonpath /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json \\
         --max-samples 50 \\
         --dump-output results/alpha_540/v2_alpha_base_dump.json
 

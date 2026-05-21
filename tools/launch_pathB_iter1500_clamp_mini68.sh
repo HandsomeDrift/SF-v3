@@ -4,12 +4,12 @@
 #   mini-68 split 2-way → 34 samples/GPU, ~34 × 4.5 min ≈ 2.55h wall clock.
 # Purpose: decompose which gate_net drift channel controls EPE vs FVD.
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v3_pathB_model.yaml
 INFER=configs/sf_v1/infer_pathB_p1_iter1500.yaml
-SPLIT_A=/public/home/maoyaoxin/xxt/datasets/mini68_halfA.json
-SPLIT_B=/public/home/maoyaoxin/xxt/datasets/mini68_halfB.json
+SPLIT_A=/public/home/maoyaoxin/zhangt/xxt/datasets/mini68_halfA.json
+SPLIT_B=/public/home/maoyaoxin/zhangt/xxt/datasets/mini68_halfB.json
 DSET_DIR=results/alpha_540
 
 cd $PROJ

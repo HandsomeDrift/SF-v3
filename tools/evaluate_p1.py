@@ -10,7 +10,7 @@ and evaluates:
   4. Gating behavior:        alpha_mot vs clip dynamics correlation
 
 Usage:
-    cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain
+    cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain
     CUDA_VISIBLE_DEVICES=0 python tools/evaluate_p1.py \
         --ckpt ckpts_5b/sf_v1_p1_full_v2-04-03-13-44/3000/mp_rank_00_model_states.pt \
         --data-json sub-0005_test_va.json \

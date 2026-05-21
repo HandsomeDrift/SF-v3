@@ -8,11 +8,11 @@
 
 set -euo pipefail
 
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v1_model.yaml
 V2_CKPT_CONFIG=configs/sf_v1/infer_stage3_v2.yaml
-JSON=/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json
+JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json
 
 cd "$PROJ"
 mkdir -p logs results

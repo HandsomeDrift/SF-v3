@@ -2,8 +2,8 @@
 
 Usage:
     python tools/eval_alpha_schedule.py \
-        --gt-jsonpath /public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json \
-        --result-dir E0_v2_static=/public/home/maoyaoxin/xxt/SF-v1/CineBrain/results/stage3_v2_sub05 \
+        --gt-jsonpath /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json \
+        --result-dir E0_v2_static=/public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain/results/stage3_v2_sub05 \
         --result-dir E1_linear_mild=results/v3_alpha_E1_linear_mild \
         --result-dir E3_cosine=results/v3_alpha_E3_cosine
 
@@ -114,7 +114,7 @@ def print_markdown_table(results, baseline_name=None):
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--gt-jsonpath", required=True,
-                    help="e.g. /public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json")
+                    help="e.g. /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json")
     ap.add_argument("--result-dir", action="append", required=True,
                     help="NAME=PATH format. Can be repeated.")
     ap.add_argument("--baseline", default="E0_v2_static",

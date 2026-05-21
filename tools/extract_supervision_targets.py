@@ -10,8 +10,8 @@ Extracts per-clip targets using SigLIP2 and saves as .npy files:
 
 Usage:
     python tools/extract_supervision_targets.py \
-        --dataset_root /public/home/maoyaoxin/xxt/datasets \
-        --output_dir /public/home/maoyaoxin/xxt/datasets/sf_targets \
+        --dataset_root /public/home/maoyaoxin/zhangt/xxt/datasets \
+        --output_dir /public/home/maoyaoxin/zhangt/xxt/datasets/sf_targets \
         --batch_size 32 \
         --num_workers 4
 

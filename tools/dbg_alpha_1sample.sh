@@ -3,11 +3,11 @@
 # Runs clamp=none and clamp=both in parallel on gpu5 GPU 0 and 1.
 # Each ~5 min.
 set -u
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 MODEL=configs/sf_v1/cinebrain_sf_v3_pathB_model.yaml
 INFER=configs/sf_v1/infer_pathB_p1_iter1500.yaml
-SPLIT=/public/home/maoyaoxin/xxt/datasets/single_sample.json
+SPLIT=/public/home/maoyaoxin/zhangt/xxt/datasets/single_sample.json
 cd $PROJ
 export CUDA_HOME=/public/home/maoyaoxin/anaconda3/envs/cinebrain
 export PYTHONPATH=${PROJ}:${PYTHONPATH:-}

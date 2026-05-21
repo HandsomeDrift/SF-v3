@@ -26,7 +26,7 @@ Usage (single GPU):
         tools/probe_per_block_contribution.py \
         --base configs/sf_v1/cinebrain_sf_v3_pathB_model.yaml \
                configs/sf_v1/infer_pathB_p1.yaml \
-        --jsonpath /public/home/maoyaoxin/xxt/datasets/sub-0005_test_va_mini20.json \
+        --jsonpath /public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va_mini20.json \
         --max_samples 10 \
         --tau_value 0.5 \
         --alpha_value 0.5 \
@@ -350,7 +350,7 @@ if __name__ == "__main__":
     py_parser.add_argument("--heatmap_png", type=str,
                            default="results/probe_per_block/heatmap.png")
     py_parser.add_argument("--jsonpath", type=str,
-                           default="/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va_mini20.json")
+                           default="/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va_mini20.json")
     known, args_list = py_parser.parse_known_args()
 
     if "--jsonpath" not in args_list:

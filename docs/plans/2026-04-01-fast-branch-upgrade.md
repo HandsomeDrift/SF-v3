@@ -36,7 +36,7 @@
 - `ofs_log_zscore`: log(1+ofs_score) z-score 归一化标量
 
 **PCA 变换矩阵和统计量已保存在:**
-`/public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1/metadata/target_transform_stats.pt`
+`/public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1/metadata/target_transform_stats.pt`
 
 **脚本逻辑:**
 ```python

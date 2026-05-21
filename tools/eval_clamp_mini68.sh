@@ -2,10 +2,10 @@
 # Eval 4 α-clamp configs (none/mot/brain/both) on mini-68.
 # Runs sequentially on 1 GPU, ~10 min × 4 = ~40 min total.
 set -euo pipefail
-PROJ=/public/home/maoyaoxin/xxt/SF-v3
+PROJ=/public/home/maoyaoxin/zhangt/xxt/SF-v3
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 EVAL_GPU=${EVAL_GPU:-0}
-GT_JSON=/public/home/maoyaoxin/xxt/datasets/full540_8split0.json
+GT_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/full540_8split0.json
 RESULTS=${PROJ}/results/alpha_540
 cd ${PROJ}
 

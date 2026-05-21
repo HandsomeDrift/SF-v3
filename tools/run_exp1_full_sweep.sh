@@ -16,7 +16,7 @@
 
 set -eo pipefail
 
-cd /public/home/maoyaoxin/xxt/SF-v3
+cd /public/home/maoyaoxin/zhangt/xxt/SF-v3
 
 # ---- Configurable ----
 N_SAMPLES=${N_SAMPLES:-10}       # override via env var
@@ -28,14 +28,14 @@ OUTPUT_BASE=${OUTPUT_BASE:-results/exp1_alpha_sweep}
 STEPS=(1 7 13 20 27 34 41 48)
 
 # ---- Setup ----
-DATASET_JSON=/public/home/maoyaoxin/xxt/datasets/exp1_sweep_${N_SAMPLES}samples.json
+DATASET_JSON=/public/home/maoyaoxin/zhangt/xxt/datasets/exp1_sweep_${N_SAMPLES}samples.json
 PY=/public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python
 
 if [ ! -f "${DATASET_JSON}" ]; then
   echo "Generating ${N_SAMPLES}-sample dataset JSON from mini20..."
   ${PY} <<EOF
 import json, random
-src = json.load(open("/public/home/maoyaoxin/xxt/datasets/sub-0005_test_va.json"))
+src = json.load(open("/public/home/maoyaoxin/zhangt/xxt/datasets/sub-0005_test_va.json"))
 random.seed(42)
 subset = random.sample(src, k=${N_SAMPLES})
 json.dump(subset, open("${DATASET_JSON}", "w"))
@@ -50,7 +50,7 @@ BASELINE_DIR=${OUTPUT_BASE}/baseline
 if [ ! -f "${BASELINE_DIR}/done.flag" ]; then
   echo "=== Launching baseline on GPU 0 ==="
   mkdir -p ${BASELINE_DIR}
-  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0 PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3 \
+  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0 PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3 \
     nohup ${PY} -m torch.distributed.run --standalone --nproc_per_node=1 --master_port=${PORT_BASE} \
     sample_brain_va.py --base \
       configs/sf_v1/cinebrain_sf_v1_model.yaml \
@@ -86,7 +86,7 @@ for idx in "${!STEPS[@]}"; do
     configs/sf_v1/exp1_perturb_override.yaml > ${override_yaml}
 
   echo "=== Launching step=${step} on GPU ${gpu}, port ${PORT} ==="
-  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} PYTHONPATH=/public/home/maoyaoxin/xxt/SF-v3 \
+  CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=${gpu} PYTHONPATH=/public/home/maoyaoxin/zhangt/xxt/SF-v3 \
     nohup ${PY} -m torch.distributed.run --standalone --nproc_per_node=1 --master_port=${PORT} \
     sample_brain_va.py --base \
       configs/sf_v1/cinebrain_sf_v1_model.yaml \

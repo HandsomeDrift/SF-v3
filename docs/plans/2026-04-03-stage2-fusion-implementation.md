@@ -201,7 +201,7 @@ Search for `is_trainable` in the model yaml. If it's `false` or missing, change 
 **Step 1: Run preflight check**
 
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=0 \
   /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python tools/preflight_check.py'"
 ```
@@ -229,7 +229,7 @@ Copy `sf_v1_stage2_fusion.yaml` to `sf_v1_stage2_overfit.yaml`, change:
 **Step 2: Run overfit**
 
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 CUDA_VISIBLE_DEVICES=3 \
   nohup /public/home/maoyaoxin/anaconda3/envs/cinebrain/bin/python \
   train_video_fmri.py --base configs/sf_v1/cinebrain_sf_v1_model.yaml configs/sf_v1/sf_v1_stage2_overfit.yaml \
@@ -266,7 +266,7 @@ Only proceed if Task 7 mini train shows L_diff decreasing.
 **Step 1: Launch full training**
 
 ```bash
-ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/xxt/SF-v1/CineBrain && \
+ssh ts3 "ssh gpu2 'cd /public/home/maoyaoxin/zhangt/xxt/SF-v1/CineBrain && \
   CUDA_HOME=/usr/local/cuda-12.4 \
   CUDA_VISIBLE_DEVICES=3,4,5,6,7 \
   NCCL_TIMEOUT=3600 \

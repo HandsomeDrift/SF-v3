@@ -40,7 +40,7 @@ from tqdm import tqdm
 # ---------------------------------------------------------------------------
 FRAME_INDICES = [0, 4, 8, 12, 16, 20, 24, 28, 32]
 T_OUT = len(FRAME_INDICES)  # 9
-SHARD_DIR = "/public/home/maoyaoxin/xxt/datasets/supervision_cache/version_v1/shards"
+SHARD_DIR = "/public/home/maoyaoxin/zhangt/xxt/datasets/supervision_cache/version_v1/shards"
 SIGLIP_DIM = 1152
 
 
